@@ -31,21 +31,23 @@
 //  self.edgesForExtendedLayout = UIRectEdgeNone;
   self.scrollView = [[UITableView alloc] initWithFrame:self.view.bounds];
 
-
-  self.scrollView.backgroundColor = [UIColor redColor];
   self.scrollView.delegate = self;
   self.scrollView.dataSource = self;
   [self.view addSubview:self.scrollView];
 //  self.scrollView.contentSize = CGSizeMake(self.scrollView.frame.size.width, self.scrollView.frame.size.height * 2);
-//  self.scrollView.contentInset = UIEdgeInsetsMake(20, 0, 0, 0);
+//  self.scrollView.contentInset = UIEdgeInsetsMake(20, 0, 20, 0);
   self.refreshController = [[JYRefreshController alloc] initWithScrollView:self.scrollView];
   [self.refreshController setCanRefreshDirection:kJYRefreshableDirectionTop | kJYRefreshableDirectionBottom];
   self.refreshController.delegate = self;
 
-  UIBarButtonItem *revealButtonItem = [[UIBarButtonItem alloc] initWithBarButtonSystemItem:UIBarButtonSystemItemStop target:self action:@selector(stopLoading:)];
-  self.navigationItem.leftBarButtonItem = revealButtonItem;
+  UIBarButtonItem *stopItem = [[UIBarButtonItem alloc] initWithBarButtonSystemItem:UIBarButtonSystemItemStop target:self action:@selector(stopLoading:)];
+  self.navigationItem.leftBarButtonItem = stopItem;
+  UIBarButtonItem *refreshItem = [[UIBarButtonItem alloc] initWithBarButtonSystemItem:UIBarButtonSystemItemRefresh target:self action:@selector(startLoading:)];
+  self.navigationItem.rightBarButtonItem = refreshItem;
 
 //  self.navigationController.navigationBarHidden = YES;
+
+
 
 //  UIView *view = [[UIView alloc] initWithFrame:CGRectMake(0, 0, 320, 64)];
 //  view.backgroundColor = [UIColor whiteColor];
@@ -68,11 +70,20 @@
 
 }
 
+- (void)startLoading:(id)sender
+{
+  [self.refreshController triggerRefreshAtDirection:kJYRefreshDirectionBottom animated:YES];
+}
+
 - (void)stopLoading:(id)sender
 {
+  [self.refreshController stopRefreshAtDirection:kJYRefreshDirectionTop animated:YES completion:^{
+
+  }];
   [self.refreshController stopRefreshAtDirection:kJYRefreshDirectionBottom animated:YES completion:^{
 
   }];
+
 }
 
 - (void)refreshControl:(JYRefreshController *)refreshControl
