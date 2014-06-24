@@ -106,7 +106,7 @@ static CGFloat const kJYRefreshViewDefaultHeight = 44.0f;
   }
   UIEdgeInsets contentInset = self.scrollView.contentInset;
   if (canRefreshDirection & kJYRefreshDirectionBottom) {
-    contentInset.bottom += kJYRefreshViewDefaultHeight;
+    contentInset.bottom = kJYRefreshViewDefaultHeight + self.originContentInsets.bottom;
   } else {
     contentInset.bottom = self.originContentInsets.bottom;
   }
@@ -143,9 +143,6 @@ static CGFloat const kJYRefreshViewDefaultHeight = 44.0f;
   CGPoint contentOffset = CGPointZero;
 
   CGFloat refreshingInset = kJYRefreshViewDefaultHeight;
-  if ([self.delegate respondsToSelector:@selector(refreshControl:refreshingInsetForDirection:)]) {
-    refreshingInset = [self.delegate refreshControl:self refreshingInsetForDirection:direction];
-  }
 
   switch (direction) {
     case kJYRefreshDirectionTop:
@@ -168,7 +165,7 @@ static CGFloat const kJYRefreshViewDefaultHeight = 44.0f;
     default:
       break;
   }
-//  NSLog(@"contentOffset : %.2f", contentOffset.y);
+  //  NSLog(@"contentOffset : %.2f", contentOffset.y);
   [self _setRefreshState:kJYRefreshStateLoading atDirection:direction];
 
   NSTimeInterval duration = flag ? JY_ANIMATION_DURATION : 0.0f;
@@ -246,27 +243,18 @@ static CGFloat const kJYRefreshViewDefaultHeight = 44.0f;
 - (void)_checkOffsetsForDirection:(JYRefreshDirection)direction change:(NSDictionary *)change {
 
   CGPoint contentOffset = [[change objectForKey:NSKeyValueChangeNewKey] CGPointValue];
-//  NSLog(@"contentOffset : %.2f", contentOffset.y);
+  //  NSLog(@"contentOffset : %.2f", contentOffset.y);
 
   UIView <JYRefreshView>*refreshView = [self refreshViewAtDirection:direction];
 
   JYRefreshDirection refreshingDirection = direction;
   JYRefreshableDirection currentRefreshableDirection = kJYRefreshableDirectionNone;
   BOOL canEngage = NO;
-  
+
   UIEdgeInsets contentInset = _scrollView.contentInset;
 
   CGFloat refreshViewHeight = refreshView.frame.size.height;
-  CGFloat refreshableInset = refreshViewHeight;
-
-  if ([self.delegate respondsToSelector:@selector(refreshControl:refreshableInsetForDirection:)]) {
-    refreshableInset = [self.delegate refreshControl:self refreshableInsetForDirection:direction];
-  }
-
   CGFloat refreshingInset = refreshViewHeight;
-  if ([self.delegate respondsToSelector:@selector(refreshControl:refreshingInsetForDirection:)]) {
-    refreshingInset = [self.delegate refreshControl:self refreshingInsetForDirection:direction];
-  }
   CGFloat didShowHeight = 0.0f;
   CGFloat threshold = 0.0f;
   switch (direction) {
@@ -288,16 +276,16 @@ static CGFloat const kJYRefreshViewDefaultHeight = 44.0f;
       if (self.refreshingDirection & refreshingDirection) {
         didShowHeight += refreshingInset;
       }
-//      NSLog(@"didShowHeight: %.2f", didShowHeight);
+      //      NSLog(@"didShowHeight: %.2f", didShowHeight);
       canEngage = contentOffset.y <= threshold;
       break;
     case kJYRefreshDirectionBottom: {
       currentRefreshableDirection = kJYRefreshableDirectionBottom;
       didShowHeight = contentOffset.y + self.scrollView.bounds.size.height
-                      - self.scrollView.contentSize.height - self.originContentInsets.bottom;
+      - self.scrollView.contentSize.height - self.originContentInsets.bottom;
       threshold = self.scrollView.contentSize.height - self.scrollView.bounds.size.height;
       canEngage = contentOffset.y >= threshold;
-//      NSLog(@"didShowHeight: %.2f", didShowHeight);
+      //      NSLog(@"didShowHeight: %.2f", didShowHeight);
       break;
     }
     default:
@@ -331,7 +319,7 @@ static CGFloat const kJYRefreshViewDefaultHeight = 44.0f;
                              self.refreshHandleAction(direction);
                            }
                          }];
-        
+
       } else if (canEngage && !(self.refreshableDirection & currentRefreshableDirection) && self.scrollView.isDragging) {
         self.refreshableDirection |= currentRefreshableDirection;
         [self _setRefreshState:kJYRefreshStateTrigger atDirection:direction];
@@ -364,9 +352,7 @@ static CGFloat const kJYRefreshViewDefaultHeight = 44.0f;
         break;
 
       case kJYRefreshDirectionBottom:
-        originY = ((self.scrollView.contentSize.height > self.scrollView.frame.size.height)
-                   ? self.scrollView.contentSize.height + self.originContentInsets.bottom
-                   : self.scrollView.frame.size.height);
+        originY = self.scrollView.contentSize.height + self.originContentInsets.bottom;
         break;
 
       default:
@@ -390,3 +376,4 @@ static CGFloat const kJYRefreshViewDefaultHeight = 44.0f;
 }
 
 @end
+

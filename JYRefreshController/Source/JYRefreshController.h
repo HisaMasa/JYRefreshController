@@ -51,17 +51,6 @@ didShowRefreshViewHeight:(CGFloat)progress
 didRefreshStateChanged:(JYRefreshState)refreshState
            atDirection:(JYRefreshDirection)direction;
 
-/*
- * inset threshold to engage refresh
- */
-- (CGFloat)refreshControl:(JYRefreshController *)refreshController
-refreshableInsetForDirection:(JYRefreshDirection)direction;
-
-/*
- * inset that the direction retracts back to after refresh started
- */
-- (CGFloat)refreshControl:(JYRefreshController *)refreshController
-refreshingInsetForDirection:(JYRefreshDirection)direction;
 
 @end
 
