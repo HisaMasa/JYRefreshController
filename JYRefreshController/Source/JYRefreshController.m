@@ -127,6 +127,18 @@ static CGFloat const kJYRefreshViewDefaultHeight = 44.0f;
   }
 }
 
+- (void)setDefaultIndicatorColor:(UIColor *)defaultIndicatorColor
+{
+  for (NSInteger index = 0; index < 2; index++) {
+    JYRefreshDirection direction = 1 << index;
+    UIView<JYRefreshView> *refreshView = [self refreshViewAtDirection:direction];
+    if ([refreshView isMemberOfClass:[JYRefreshView class]]) {
+      JYRefreshView *jyRefreshView = (JYRefreshView *)refreshView;
+      jyRefreshView.refreshIndicator.color = defaultIndicatorColor;
+    }
+  }
+}
+
 #pragma mark - trigger & stop refresh
 - (void)triggerRefreshAtDirection:(JYRefreshDirection)direction
 {

@@ -9,7 +9,7 @@
 #import "JYRefreshIndicator.h"
 #include <tgmath.h>
 
-static NSString *const JY_ANIMATION_KEY = @"wave-anim";
+static NSString *const JY_ANIMATION_KEY = @"spinkit-anim";
 
 @interface JYRefreshIndicator ()
 @property (nonatomic, assign, getter = isStopped) BOOL stopped;
@@ -37,14 +37,15 @@ static NSString *const JY_ANIMATION_KEY = @"wave-anim";
                                                  name:UIApplicationDidEnterBackgroundNotification
                                                object:nil];
 
-    CGFloat barWidth = CGRectGetWidth(self.bounds) / 5.0;
-    for (NSInteger i=0; i < 5; i+=1) {
-      CALayer *layer = [CALayer layer];
-      layer.backgroundColor = _color.CGColor;
-      layer.frame = CGRectMake(barWidth * i, 0.0, barWidth - 3.0, CGRectGetHeight(self.bounds));
-      layer.transform = CATransform3DMakeScale(1.0, 0.4, 0.0);
-      [self.layer addSublayer:layer];
-    }
+    //    CGFloat barWidth = CGRectGetWidth(self.bounds) / 5.0;
+
+    //    for (NSInteger i=0; i < 5; i+=1) {
+    //      CALayer *layer = [CALayer layer];
+    //      layer.backgroundColor = _color.CGColor;
+    //      layer.frame = CGRectMake(barWidth * i, 0.0, barWidth - 3.0, CGRectGetHeight(self.bounds));
+    //      layer.transform = CATransform3DMakeScale(1.0, 1.0, 0.0);
+    //      [self.layer addSublayer:layer];
+    //    }
   }
   return self;
 }
@@ -98,33 +99,35 @@ static NSString *const JY_ANIMATION_KEY = @"wave-anim";
 
 - (void)resumeLayers
 {
-  NSTimeInterval beginTime = CACurrentMediaTime() + 1.2;
-  [self.layer.sublayers enumerateObjectsUsingBlock:^(id obj, NSUInteger idx, BOOL *stop) {
-    CALayer *layer = obj;
-    CAKeyframeAnimation *anim = [CAKeyframeAnimation animationWithKeyPath:@"transform"];
-    anim.removedOnCompletion = NO;
-    anim.beginTime = beginTime - (1.2 - (0.1 * idx));
-    anim.duration = 1.2;
-    anim.repeatCount = HUGE_VALF;
+  NSTimeInterval beginTime = CACurrentMediaTime();
 
-    anim.keyTimes = @[@(0.0), @(0.2), @(0.4), @(1.0)];
+  CALayer *circle = [CALayer layer];
+  circle.frame = CGRectInset(self.bounds, 2.0, 2.0);
+  circle.backgroundColor = _color.CGColor;
+  circle.anchorPoint = CGPointMake(0.5, 0.5);
+  circle.opacity = 0.2;
+  circle.cornerRadius = CGRectGetHeight(circle.bounds) * 0.5;
+  circle.transform = CATransform3DMakeScale(0.2, 0.2, 0.0);
 
-    anim.timingFunctions = @[
-                             [CAMediaTimingFunction functionWithName:kCAMediaTimingFunctionEaseInEaseOut],
-                             [CAMediaTimingFunction functionWithName:kCAMediaTimingFunctionEaseInEaseOut],
-                             [CAMediaTimingFunction functionWithName:kCAMediaTimingFunctionEaseInEaseOut],
-                             [CAMediaTimingFunction functionWithName:kCAMediaTimingFunctionEaseInEaseOut]
-                             ];
+  CAKeyframeAnimation *scaleAnim = [CAKeyframeAnimation animationWithKeyPath:@"transform"];
+  scaleAnim.values = @[
+                       [NSValue valueWithCATransform3D:CATransform3DMakeScale(0.2, 0.2, 0.0)],
+                       [NSValue valueWithCATransform3D:CATransform3DMakeScale(1.0, 1.0, 0.0)]
+                       ];
 
-    anim.values = @[
-                    [NSValue valueWithCATransform3D:CATransform3DMakeScale(1.0, 0.4, 0.0)],
-                    [NSValue valueWithCATransform3D:CATransform3DMakeScale(1.0, 1.0, 0.0)],
-                    [NSValue valueWithCATransform3D:CATransform3DMakeScale(1.0, 0.4, 0.0)],
-                    [NSValue valueWithCATransform3D:CATransform3DMakeScale(1.0, 0.4, 0.0)]
-                    ];
+  CAKeyframeAnimation *opacityAnim = [CAKeyframeAnimation animationWithKeyPath:@"opacity"];
+  opacityAnim.values = @[@(1.0), @(0.0)];
 
-    [layer addAnimation:anim forKey:JY_ANIMATION_KEY];
-  }];
+  CAAnimationGroup *animGroup = [CAAnimationGroup animation];
+  animGroup.removedOnCompletion = NO;
+  animGroup.beginTime = beginTime;
+  animGroup.repeatCount = HUGE_VALF;
+  animGroup.duration = 1.0;
+  animGroup.animations = @[scaleAnim, opacityAnim];
+  animGroup.timingFunction = [CAMediaTimingFunction functionWithName:kCAMediaTimingFunctionEaseInEaseOut];
+
+  [self.layer addSublayer:circle];
+  [circle addAnimation:animGroup forKey:JY_ANIMATION_KEY];
 }
 
 - (CGSize)sizeThatFits:(CGSize)size
@@ -135,7 +138,6 @@ static NSString *const JY_ANIMATION_KEY = @"wave-anim";
 - (void)setColor:(UIColor *)color
 {
   _color = color;
-
   for (CALayer *layer in self.layer.sublayers) {
     layer.backgroundColor = color.CGColor;
   }

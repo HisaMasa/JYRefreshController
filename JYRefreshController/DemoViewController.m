@@ -39,6 +39,7 @@
   self.refreshController = [[JYRefreshController alloc] initWithScrollView:self.scrollView];
   [self.refreshController setCanRefreshDirection:kJYRefreshableDirectionTop | kJYRefreshableDirectionBottom];
   self.refreshController.delegate = self;
+  self.refreshController.defaultIndicatorColor = [UIColor redColor];
 
   UIBarButtonItem *stopItem = [[UIBarButtonItem alloc] initWithBarButtonSystemItem:UIBarButtonSystemItemStop target:self action:@selector(stopLoading:)];
   self.navigationItem.leftBarButtonItem = stopItem;

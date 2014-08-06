@@ -20,6 +20,7 @@
 @property (nonatomic, assign) UIEdgeInsets originContentInsets;
 @property (nonatomic, assign) JYRefreshableDirection canRefreshDirection;
 @property (nonatomic, readonly, assign) JYRefreshDirection refreshingDirection;
+@property (nonatomic, strong) UIColor *defaultIndicatorColor;
 
 @property (nonatomic, weak) id<JYRefreshControlDelegate> delegate;
 @property (nonatomic, copy) void(^refreshHandleAction)(JYRefreshDirection loadingDirection);
