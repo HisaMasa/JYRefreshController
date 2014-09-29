@@ -335,7 +335,6 @@ static CGFloat const kJYRefreshViewDefaultHeight = 44.0f;
       } else if (canEngage && !(self.refreshableDirection & currentRefreshableDirection) && self.scrollView.isDragging) {
         self.refreshableDirection |= currentRefreshableDirection;
         [self _setRefreshState:kJYRefreshStateTrigger atDirection:direction];
-        NSLog(@"triger");
       } else if (!canEngage && (self.refreshableDirection & currentRefreshableDirection)) {
         self.refreshableDirection &= ~currentRefreshableDirection;
         [self _setRefreshState:kJYRefreshStateStop atDirection:direction];
@@ -383,6 +382,7 @@ static CGFloat const kJYRefreshViewDefaultHeight = 44.0f;
 {
   CGRect frame = CGRectMake(0, 0, CGRectGetWidth(self.scrollView.bounds), kJYRefreshViewDefaultHeight);
   UIView<JYRefreshView> *refreshView = [[JYRefreshView alloc] initWithFrame:frame];
+  refreshView.autoresizingMask = UIViewAutoresizingFlexibleWidth;
   [refreshView layoutSubviewsForRefreshState:kJYRefreshStateStop];
   return refreshView;
 }
