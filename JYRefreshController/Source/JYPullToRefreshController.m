@@ -9,6 +9,7 @@
 #import "JYPullToRefreshController.h"
 
 #define kJYRefreshViewDefaultHeight 44.0f
+#define kJYRefreshViewAnimationDuration 0.3f
 
 @interface JYPullToRefreshController ()
 
@@ -32,45 +33,26 @@
 {
   self = [super init];
   if (self) {
-      // set ivars
     _scrollView = scrollView;
     _originalContentInsetTop = scrollView.contentInset.top;
     _enable = YES;
 
-    [_scrollView addObserver:self
+    [self.scrollView addObserver:self
                   forKeyPath:@"contentOffset"
                      options:NSKeyValueObservingOptionNew
                      context:NULL];
-    [_scrollView addObserver:self
-                  forKeyPath:@"contentSize"
-                     options:NSKeyValueObservingOptionNew
-                     context:NULL];
 
-    [self setRefreshView:self.refreshView];
+    self.refreshView = [self defalutRefreshView];
   }
   return self;
 }
 
 - (void)dealloc
 {
-  [_scrollView removeObserver:self forKeyPath:@"contentOffset"];
-  [_scrollView removeObserver:self forKeyPath:@"contentSize"];
+  [self.scrollView removeObserver:self forKeyPath:@"contentOffset"];
 }
 
 #pragma mark- Property
-- (UIView<JYRefreshView> *)refreshView
-{
-  if (!_refreshView) {
-    CGRect frame = CGRectMake(0, 0, CGRectGetWidth(self.scrollView.bounds), kJYRefreshViewDefaultHeight);
-    JYRefreshView *refreshView = [[JYRefreshView alloc] initWithFrame:frame];
-    [self.scrollView addSubview:refreshView];
-    refreshView.autoresizingMask = UIViewAutoresizingFlexibleWidth;
-    self.refreshState = kJYRefreshStateStop;
-    _refreshView = refreshView;
-  }
-  return _refreshView;
-}
-
 - (void)setRefreshState:(JYRefreshState)refreshState
 {
   _refreshState = refreshState;
@@ -86,15 +68,6 @@
     [self.refreshView pullToRefreshController:self didSetEnable:enable];
   }
   [self layoutRefreshView];
-  UIEdgeInsets contentInset = self.scrollView.contentInset;
-  contentInset.top = self.originalContentInsetTop;
-
-  [UIView animateWithDuration:.2f
-                        delay:0
-                      options:UIViewAnimationOptionAllowUserInteraction | UIViewAnimationOptionBeginFromCurrentState
-                   animations:^{
-                     self.scrollView.contentInset = contentInset;
-                   } completion:NULL];
 }
 
 #pragma mark - Action
@@ -103,7 +76,7 @@
   if (!self.enable || self.refreshState == kJYRefreshStateLoading) {
     return;
   }
-  UIEdgeInsets contentInset = _scrollView.contentInset;
+  UIEdgeInsets contentInset = self.scrollView.contentInset;
   CGPoint contentOffset = CGPointZero;
 
   CGFloat refreshingInset = self.refreshView.frame.size.height;
@@ -114,16 +87,15 @@
                                   contentInset.right);
 
   contentOffset = CGPointMake(0, -contentInset.top);
-    //  NSLog(@"contentOffset : %.2f", contentOffset.y);
 
   self.refreshState = kJYRefreshStateLoading;
-  NSTimeInterval duration = animated ? 0.2f : 0.0f;
+  NSTimeInterval duration = animated ? kJYRefreshViewAnimationDuration : 0.0f;
   [UIView animateWithDuration:duration
                         delay:0
                       options:UIViewAnimationOptionAllowUserInteraction | UIViewAnimationOptionBeginFromCurrentState
                    animations:^{
-                     _scrollView.contentInset = contentInset;
-                     _scrollView.contentOffset = contentOffset;
+                     self.scrollView.contentInset = contentInset;
+                     self.scrollView.contentOffset = contentOffset;
                    } completion:^(BOOL finished) {
                      if (self.pullToRefreshHandleAction) {
                        self.pullToRefreshHandleAction();
@@ -133,17 +105,19 @@
 
 - (void)stopRefreshWithAnimated:(BOOL)animated completion:(void(^)())completion
 {
-  if (!self.enable || self.refreshState != kJYRefreshStateStop) {
+  if (!self.enable || self.refreshState == kJYRefreshStateStop) {
     return;
   }
   self.refreshState = kJYRefreshStateStop;
-  NSTimeInterval duration = animated ? 0.2f : 0.0f;
+
+  UIEdgeInsets contentInset = self.scrollView.contentInset;
+  contentInset.top -= self.refreshView.frame.size.height;
+
+  NSTimeInterval duration = animated ? kJYRefreshViewAnimationDuration : 0.0f;
   [UIView animateWithDuration:duration
                         delay:0
-                      options:UIViewAnimationOptionAllowUserInteraction|UIViewAnimationOptionBeginFromCurrentState
+                      options:UIViewAnimationOptionAllowUserInteraction | UIViewAnimationOptionBeginFromCurrentState
                    animations:^{
-                       UIEdgeInsets contentInset = self.scrollView.contentInset;
-                       contentInset.top = self.originalContentInsetTop;
                        self.scrollView.contentInset = contentInset;
                    } completion:^(BOOL finished) {
                      if (finished) {
@@ -164,6 +138,77 @@
   [self layoutRefreshView];
 }
 
+#pragma mark - KVO
+- (void)observeValueForKeyPath:(NSString *)keyPath
+                      ofObject:(id)object
+                        change:(NSDictionary *)change
+                       context:(void *)context
+{
+  if ([keyPath isEqualToString:@"contentOffset"]) {
+    [self checkOffsetsWithChange:change];
+  }
+}
+
+#pragma mark - Private Methods
+- (void)checkOffsetsWithChange:(NSDictionary *)change {
+  if (!self.enable) {
+    return;
+  }
+  CGPoint contentOffset = [[change objectForKey:NSKeyValueChangeNewKey] CGPointValue];
+  BOOL isTriggered = NO;
+  UIEdgeInsets contentInset = self.scrollView.contentInset;
+  CGFloat refreshViewHeight = self.refreshView.frame.size.height;
+  CGFloat threshold = -contentInset.top - refreshViewHeight;
+
+  isTriggered = contentOffset.y <= threshold;
+  if ([self.refreshView respondsToSelector:@selector(pullToRefreshController:didShowRefreshViewPercentage:)]
+      && self.refreshState == kJYRefreshStateStop) {
+
+    CGFloat refreshViewVisibleHeight = -contentOffset.y - contentInset.top;
+    CGFloat percentage = refreshViewVisibleHeight / refreshViewHeight;
+    percentage = percentage <= 0 ? 0 : percentage;
+    percentage = percentage >= 1 ? 1 : percentage;
+    [self.refreshView pullToRefreshController:self didShowRefreshViewPercentage:percentage];
+  }
+
+  if (self.scrollView.isDragging) {
+    if (isTriggered && self.refreshState == kJYRefreshStateStop) {
+      self.refreshState = kJYRefreshStateTrigger;
+    } else if (!isTriggered && self.refreshState == kJYRefreshStateTrigger) {
+      self.refreshState = kJYRefreshStateStop;
+    }
+  }
+  else {
+    if (self.refreshState == kJYRefreshStateTrigger) {
+      self.refreshState = kJYRefreshStateLoading;
+
+      contentInset = UIEdgeInsetsMake(refreshViewHeight + contentInset.top,
+                                      contentInset.left,
+                                      contentInset.bottom,
+                                      contentInset.right);
+
+      [UIView animateWithDuration:kJYRefreshViewAnimationDuration
+                            delay:0
+                          options:UIViewAnimationOptionAllowUserInteraction | UIViewAnimationOptionBeginFromCurrentState
+                       animations:^{
+                         self.scrollView.contentInset = contentInset;
+                       } completion:^(BOOL finished) {
+                         if (self.pullToRefreshHandleAction) {
+                           self.pullToRefreshHandleAction();
+                         }
+                       }];
+    }
+  }
+}
+
+- (UIView <JYRefreshView> *)defalutRefreshView
+{
+  CGRect frame = CGRectMake(0, 0, CGRectGetWidth(self.scrollView.bounds), kJYRefreshViewDefaultHeight);
+  JYRefreshView *refreshView = [[JYRefreshView alloc] initWithFrame:frame];
+  refreshView.autoresizingMask = UIViewAutoresizingFlexibleWidth;
+  return refreshView;
+}
+
 - (void)layoutRefreshView
 {
   if (self.enable) {
@@ -174,73 +219,6 @@
     self.refreshView.frame = frame;
   } else {
     [self.refreshView setHidden:YES];
-  }
-}
-
-#pragma mark - KVO
-- (void)observeValueForKeyPath:(NSString *)keyPath
-                      ofObject:(id)object
-                        change:(NSDictionary *)change
-                       context:(void *)context
-{
-  if ([keyPath isEqualToString:@"contentOffset"]) {
-    [self checkOffsetsWithChange:change];
-  } else if ([keyPath isEqualToString:@"contentSize"]) {
-    [self layoutRefreshView];
-  }
-}
-
-#pragma mark - Private Methods
-- (void)checkOffsetsWithChange:(NSDictionary *)change {
-  if (!self.enable) {
-    return;
-  }
-  CGPoint contentOffset = [[change objectForKey:NSKeyValueChangeNewKey] CGPointValue];
-
-  BOOL isTriggered = NO;
-
-  UIEdgeInsets contentInset = _scrollView.contentInset;
-
-  CGFloat refreshViewHeight = self.refreshView.frame.size.height;
-  CGFloat refreshingInset = refreshViewHeight;
-  CGFloat didShowHeight = 0.0f;
-  CGFloat threshold = 0.0f;
-
-  didShowHeight = -contentOffset.y - contentInset.top;
-  threshold = -contentInset.top - refreshingInset;
-  contentInset = UIEdgeInsetsMake(refreshingInset + contentInset.top,
-                                  contentInset.left,
-                                  contentInset.bottom,
-                                  contentInset.right);
-
-  didShowHeight += refreshingInset;
-    //      NSLog(@"didShowHeight: %.2f", didShowHeight);
-  isTriggered = contentOffset.y <= threshold;
-
-  if ([self.refreshView respondsToSelector:@selector(pullToRefreshController:didShowRefreshViewPercentage:)]
-      && !isTriggered) {
-    [self.refreshView pullToRefreshController:self didShowRefreshViewPercentage:didShowHeight];
-  }
-
-  if (!self.scrollView.isDragging) {
-
-    self.refreshState = kJYRefreshStateLoading;
-
-    [UIView animateWithDuration:.2f
-                          delay:0
-                        options:UIViewAnimationOptionAllowUserInteraction | UIViewAnimationOptionBeginFromCurrentState
-                     animations:^{
-                       _scrollView.contentInset = contentInset;
-                     } completion:^(BOOL finished) {
-                       if (self.pullToRefreshHandleAction) {
-                         self.pullToRefreshHandleAction();
-                       }
-                     }];
-
-  } else if (isTriggered && self.scrollView.isDragging) {
-    self.refreshState = kJYRefreshStateTrigger;
-  } else if (!isTriggered) {
-    self.refreshState = kJYRefreshStateStop;
   }
 }
 

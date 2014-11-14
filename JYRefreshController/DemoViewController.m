@@ -7,10 +7,10 @@
 //
 
 #import "DemoViewController.h"
-#import "JYRefreshController.h"
+#import "JYPullToRefreshController.h"
 
-@interface DemoViewController () <JYRefreshControlDelegate, UITableViewDataSource, UITableViewDelegate>
-@property (nonatomic ,strong) JYRefreshController *refreshController;
+@interface DemoViewController () <UITableViewDataSource, UITableViewDelegate>
+@property (nonatomic ,strong) JYPullToRefreshController *refreshController;
 @end
 
 @implementation DemoViewController
@@ -35,11 +35,8 @@
   self.scrollView.dataSource = self;
   [self.view addSubview:self.scrollView];
 //  self.scrollView.contentSize = CGSizeMake(self.scrollView.frame.size.width, self.scrollView.frame.size.height * 2);
-//  self.scrollView.contentInset = UIEdgeInsetsMake(20, 0, 20, 0);
-  self.refreshController = [[JYRefreshController alloc] initWithScrollView:self.scrollView];
-  [self.refreshController setCanRefreshDirection:kJYRefreshableDirectionTop | kJYRefreshableDirectionBottom];
-  self.refreshController.delegate = self;
-  self.refreshController.defaultIndicatorColor = [UIColor redColor];
+//  self.scrollView.contentInset = UIEdgeInsetsMake(100, 0, 20, 0);
+  self.refreshController = [[JYPullToRefreshController alloc] initWithScrollView:self.scrollView];
 
   UIBarButtonItem *stopItem = [[UIBarButtonItem alloc] initWithBarButtonSystemItem:UIBarButtonSystemItemStop target:self action:@selector(stopLoading:)];
   self.navigationItem.leftBarButtonItem = stopItem;
@@ -73,31 +70,16 @@
 
 - (void)startLoading:(id)sender
 {
-  [self.refreshController triggerRefreshAtDirection:kJYRefreshDirectionBottom animated:YES];
+  [self.refreshController triggerRefreshWithAnimated:YES];
 }
 
 - (void)stopLoading:(id)sender
 {
-  [self.refreshController stopRefreshAtDirection:kJYRefreshDirectionTop animated:YES completion:^{
+  [self.refreshController stopRefreshWithAnimated:YES completion:^{
 
   }];
-  [self.refreshController stopRefreshAtDirection:kJYRefreshDirectionBottom animated:YES completion:^{
-
-  }];
-
 }
 
-- (void)refreshControl:(JYRefreshController *)refreshControl
-didShowRefreshViewHeight:(CGFloat)progress
-           atDirection:(JYRefreshDirection)direction
-{
-
-}
-
-- (BOOL)needAdjustInsets
-{
-  return NO;
-}
 
 #pragma mark - UITableViewDataSource
 - (NSInteger)tableView:(UITableView *)tableView numberOfRowsInSection:(NSInteger)section
@@ -111,7 +93,7 @@ didShowRefreshViewHeight:(CGFloat)progress
   if (!cell) {
     cell = [[UITableViewCell alloc] initWithStyle:UITableViewCellStyleDefault reuseIdentifier:@"123"];
   }
-  cell.textLabel.text = @"wocao";
+  cell.textLabel.text = @"test";
   return cell;
 }
 

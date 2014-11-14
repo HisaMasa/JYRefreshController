@@ -8,7 +8,6 @@
 
 /* Begin PBXBuildFile section */
 		E16D57501A1469100012031B /* JYPullToRefreshController.m in Sources */ = {isa = PBXBuildFile; fileRef = E16D574F1A1469100012031B /* JYPullToRefreshController.m */; };
-		E1B044381952BEB00038569E /* JYRefreshController.m in Sources */ = {isa = PBXBuildFile; fileRef = E1B044331952BEB00038569E /* JYRefreshController.m */; };
 		E1B044391952BEB00038569E /* JYRefreshIndicator.m in Sources */ = {isa = PBXBuildFile; fileRef = E1B044351952BEB00038569E /* JYRefreshIndicator.m */; };
 		E1B0443A1952BEB00038569E /* JYRefreshView.m in Sources */ = {isa = PBXBuildFile; fileRef = E1B044371952BEB00038569E /* JYRefreshView.m */; };
 		E1FB5834194E8C550061511C /* Foundation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = E1FB5833194E8C550061511C /* Foundation.framework */; };
@@ -40,8 +39,6 @@
 		E16D574E1A1469100012031B /* JYPullToRefreshController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = JYPullToRefreshController.h; sourceTree = "<group>"; };
 		E16D574F1A1469100012031B /* JYPullToRefreshController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = JYPullToRefreshController.m; sourceTree = "<group>"; };
 		E1B044311952BEB00038569E /* JYRefreshConstant.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = JYRefreshConstant.h; sourceTree = "<group>"; };
-		E1B044321952BEB00038569E /* JYRefreshController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = JYRefreshController.h; sourceTree = "<group>"; };
-		E1B044331952BEB00038569E /* JYRefreshController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = JYRefreshController.m; sourceTree = "<group>"; };
 		E1B044341952BEB00038569E /* JYRefreshIndicator.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = JYRefreshIndicator.h; sourceTree = "<group>"; };
 		E1B044351952BEB00038569E /* JYRefreshIndicator.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = JYRefreshIndicator.m; sourceTree = "<group>"; };
 		E1B044361952BEB00038569E /* JYRefreshView.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = JYRefreshView.h; sourceTree = "<group>"; };
@@ -94,8 +91,6 @@
 			isa = PBXGroup;
 			children = (
 				E1B044311952BEB00038569E /* JYRefreshConstant.h */,
-				E1B044321952BEB00038569E /* JYRefreshController.h */,
-				E1B044331952BEB00038569E /* JYRefreshController.m */,
 				E16D574E1A1469100012031B /* JYPullToRefreshController.h */,
 				E16D574F1A1469100012031B /* JYPullToRefreshController.m */,
 				E1B044341952BEB00038569E /* JYRefreshIndicator.h */,
@@ -277,7 +272,6 @@
 				E1FB5864194E8C6C0061511C /* DemoViewController.m in Sources */,
 				E1B0443A1952BEB00038569E /* JYRefreshView.m in Sources */,
 				E1FB5844194E8C550061511C /* AppDelegate.m in Sources */,
-				E1B044381952BEB00038569E /* JYRefreshController.m in Sources */,
 				E1B044391952BEB00038569E /* JYRefreshIndicator.m in Sources */,
 				E1FB5840194E8C550061511C /* main.m in Sources */,
 			);

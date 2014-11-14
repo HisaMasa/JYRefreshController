@@ -60,13 +60,15 @@ blue:((float)(rgbValue & 0xFF))/255.0 alpha:1.0]
 - (void)pullToRefreshController:(JYPullToRefreshController *)refreshController
    didShowRefreshViewPercentage:(CGFloat)percentage
 {
-
+  [self.refreshIndicator setPercentage:percentage];
 }
 
 - (void)pullToRefreshController:(JYPullToRefreshController *)refreshController
                    didSetEnable:(BOOL)enable
 {
-
+  if (!enable) {
+    [self.refreshIndicator stopAnimating];
+  }
 }
 
 - (void)pullToRefreshController:(JYPullToRefreshController *)refreshController
@@ -75,10 +77,12 @@ blue:((float)(rgbValue & 0xFF))/255.0 alpha:1.0]
   _refreshState = refreshState;
   switch (refreshState) {
     case kJYRefreshStateStop:
+      NSLog(@"stop");
       [self.refreshIndicator stopAnimating];
       break;
 
     case kJYRefreshStateLoading:
+      NSLog(@"start");
       [self.refreshIndicator startAnimating];
       break;
 
