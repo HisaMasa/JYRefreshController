@@ -11,12 +11,20 @@
 #import "JYRefreshIndicator.h"
 
 
-@protocol JYRefreshView <NSObject>
+@class JYPullToRefreshController;
 
-@property (nonatomic, assign) BOOL visible;
+@protocol JYRefreshView
 
-- (void)layoutSubviewsForRefreshState:(JYRefreshState)state;
+@optional
 
+- (void)pullToRefreshController:(JYPullToRefreshController *)refreshController
+               didChangeToState:(JYRefreshState)refreshState;
+
+- (void)pullToRefreshController:(JYPullToRefreshController *)refreshController
+   didShowRefreshViewPercentage:(CGFloat)percentage;
+
+- (void)pullToRefreshController:(JYPullToRefreshController *)refreshController
+                   didSetEnable:(BOOL)enable;
 @end
 
 @interface JYRefreshView : UIView <JYRefreshView>

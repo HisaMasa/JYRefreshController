@@ -23,7 +23,6 @@ blue:((float)(rgbValue & 0xFF))/255.0 alpha:1.0]
 
 @implementation JYRefreshView
 @synthesize refreshIndicator = _refreshIndicator;
-@synthesize visible = _visible;
 
 
 - (id)initWithFrame:(CGRect)frame
@@ -38,30 +37,11 @@ blue:((float)(rgbValue & 0xFF))/255.0 alpha:1.0]
 }
 
 #pragma mark - layout
-
 - (void)layoutSubviews
 {
   [super layoutSubviews];
   CGPoint boundsCenter = CGPointMake(CGRectGetMidX(self.bounds), CGRectGetMidY(self.bounds));
   [self.refreshIndicator setCenter:boundsCenter];
-}
-
-- (void)layoutSubviewsForRefreshState:(JYRefreshState)refreshState
-{
-  _refreshState = refreshState;
-  switch (refreshState) {
-    case kJYRefreshStateStop:
-      [self.refreshIndicator stopAnimating];
-      break;
-
-    case kJYRefreshStateLoading:
-      [self.refreshIndicator startAnimating];
-      break;
-
-    default:
-      break;
-  }
-  [self setNeedsLayout];
 }
 
 #pragma mark - getter
@@ -76,17 +56,36 @@ blue:((float)(rgbValue & 0xFF))/255.0 alpha:1.0]
   return _refreshIndicator;
 }
 
-#pragma mark - setter
-- (void)setVisible:(BOOL)visible
+#pragma mark - JYRefreshView Protocol
+- (void)pullToRefreshController:(JYPullToRefreshController *)refreshController
+   didShowRefreshViewPercentage:(CGFloat)percentage
 {
-  _visible = visible;
-  if (visible) {
-    self.hidden = NO;
-    self.refreshIndicator.hidden = NO;
-  } else {
-    self.hidden = YES;
-    self.refreshIndicator.hidden = YES;
+
+}
+
+- (void)pullToRefreshController:(JYPullToRefreshController *)refreshController
+                   didSetEnable:(BOOL)enable
+{
+
+}
+
+- (void)pullToRefreshController:(JYPullToRefreshController *)refreshController
+               didChangeToState:(JYRefreshState)refreshState;
+{
+  _refreshState = refreshState;
+  switch (refreshState) {
+    case kJYRefreshStateStop:
+      [self.refreshIndicator stopAnimating];
+      break;
+
+    case kJYRefreshStateLoading:
+      [self.refreshIndicator startAnimating];
+      break;
+
+    default:
+      break;
   }
+  [self layoutIfNeeded];
 }
 
 @end
