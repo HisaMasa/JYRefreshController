@@ -7,6 +7,7 @@
 //
 
 #import "JYPullToLoadMoreController.h"
+#import "JYRefreshView.h"
 
 #define JYLoadMoreViewDefaultHeight 44.0f
 #define JYLoadMoreViewAnimationDuration 0.3f

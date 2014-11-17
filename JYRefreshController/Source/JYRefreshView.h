@@ -7,12 +7,8 @@
 //
 
 #import <UIKit/UIKit.h>
-#import "JYRefreshConstant.h"
 #import "JYRefreshIndicator.h"
-
-
-@class JYPullToRefreshController;
-@class JYPullToLoadMoreController;
+#import "JYRefreshController.h"
 
 @protocol JYRefreshView
 

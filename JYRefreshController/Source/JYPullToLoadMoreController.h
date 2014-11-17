@@ -7,7 +7,15 @@
 //
 
 #import <Foundation/Foundation.h>
-#import "JYRefreshView.h"
+
+typedef NS_ENUM(NSUInteger, JYLoadMoreState)
+{
+  JYLoadMoreStateStop = 0,
+  JYLoadMoreStateTrigger = 1,
+  JYLoadMoreStateLoading = 2,
+};
+
+@protocol JYRefreshView;
 
 @interface JYPullToLoadMoreController : NSObject
 

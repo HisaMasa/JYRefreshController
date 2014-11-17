@@ -7,6 +7,7 @@
 //
 
 #import "JYPullToRefreshController.h"
+#import "JYRefreshView.h"
 
 #define JYRefreshViewDefaultHeight 44.0f
 #define JYRefreshViewAnimationDuration 0.3f
