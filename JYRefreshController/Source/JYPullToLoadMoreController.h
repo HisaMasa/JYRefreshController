@@ -31,7 +31,7 @@ typedef NS_ENUM(NSUInteger, JYLoadMoreState)
 
 - (void)triggerLoadMoreWithAnimated:(BOOL)animated;
 
-- (void)stopLoadMoreWithAnimated:(BOOL)animated completion:(void(^)())completion;
+- (void)stopLoadMoreCompletion:(void(^)())completion;
 
 - (void)setCustomView:(UIView <JYRefreshView> *)customView;
 
