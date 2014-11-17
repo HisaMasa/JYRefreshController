@@ -74,12 +74,10 @@ blue:((float)(rgbValue & 0xFF))/255.0 alpha:1.0]
   _refreshState = refreshState;
   switch (refreshState) {
     case JYRefreshStateStop:
-      NSLog(@"stop");
       [self.refreshIndicator stopAnimating];
       break;
 
     case JYRefreshStateLoading:
-      NSLog(@"start");
       [self.refreshIndicator startAnimating];
       break;
 
