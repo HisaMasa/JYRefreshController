@@ -10,6 +10,6 @@
 
 @interface DemoViewController : UIViewController
 
-@property (nonatomic, strong) UITableView *scrollView;
+@property (nonatomic, weak) IBOutlet UITableView *tableView;
 
 @end

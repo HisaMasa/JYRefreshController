@@ -90,6 +90,9 @@ static NSString *const JY_ANIMATION_KEY = @"spinkit-anim";
 {
   if ([self isAnimating]) {
     if (self.hidesWhenStopped) {
+      [UIView animateWithDuration:0.3f animations:^{
+        self.cycleLayer.transform = CATransform3DMakeScale(0.0, 0.0, 0.0);
+      }];
     }
     [self pauseLayers];
     self.stopped = YES;

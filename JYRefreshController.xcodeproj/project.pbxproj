@@ -11,6 +11,7 @@
 		E1B044391952BEB00038569E /* JYRefreshIndicator.m in Sources */ = {isa = PBXBuildFile; fileRef = E1B044351952BEB00038569E /* JYRefreshIndicator.m */; };
 		E1B0443A1952BEB00038569E /* JYRefreshView.m in Sources */ = {isa = PBXBuildFile; fileRef = E1B044371952BEB00038569E /* JYRefreshView.m */; };
 		E1D3B1AF1A1993E4007D1B9B /* JYPullToLoadMoreController.m in Sources */ = {isa = PBXBuildFile; fileRef = E1D3B1AE1A1993E4007D1B9B /* JYPullToLoadMoreController.m */; };
+		E1D3B1B61A19F583007D1B9B /* DemoViewController.xib in Resources */ = {isa = PBXBuildFile; fileRef = E1D3B1B51A19F583007D1B9B /* DemoViewController.xib */; };
 		E1FB5834194E8C550061511C /* Foundation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = E1FB5833194E8C550061511C /* Foundation.framework */; };
 		E1FB5836194E8C550061511C /* CoreGraphics.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = E1FB5835194E8C550061511C /* CoreGraphics.framework */; };
 		E1FB5838194E8C550061511C /* UIKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = E1FB5837194E8C550061511C /* UIKit.framework */; };
@@ -46,6 +47,7 @@
 		E1D3B1AD1A1993E4007D1B9B /* JYPullToLoadMoreController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = JYPullToLoadMoreController.h; sourceTree = "<group>"; };
 		E1D3B1AE1A1993E4007D1B9B /* JYPullToLoadMoreController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; lineEnding = 0; path = JYPullToLoadMoreController.m; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.objc; };
 		E1D3B1B01A19DA53007D1B9B /* JYRefreshController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = JYRefreshController.h; sourceTree = "<group>"; };
+		E1D3B1B51A19F583007D1B9B /* DemoViewController.xib */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = file.xib; path = DemoViewController.xib; sourceTree = "<group>"; };
 		E1FB5830194E8C550061511C /* JYRefreshController.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = JYRefreshController.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		E1FB5833194E8C550061511C /* Foundation.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Foundation.framework; path = System/Library/Frameworks/Foundation.framework; sourceTree = SDKROOT; };
 		E1FB5835194E8C550061511C /* CoreGraphics.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreGraphics.framework; path = System/Library/Frameworks/CoreGraphics.framework; sourceTree = SDKROOT; };
@@ -144,6 +146,7 @@
 				E1FB5843194E8C550061511C /* AppDelegate.m */,
 				E1FB5862194E8C6C0061511C /* DemoViewController.h */,
 				E1FB5863194E8C6C0061511C /* DemoViewController.m */,
+				E1D3B1B51A19F583007D1B9B /* DemoViewController.xib */,
 				E1FB5845194E8C550061511C /* Images.xcassets */,
 				E1FB583A194E8C550061511C /* Supporting Files */,
 			);
@@ -254,6 +257,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				E1FB583E194E8C550061511C /* InfoPlist.strings in Resources */,
+				E1D3B1B61A19F583007D1B9B /* DemoViewController.xib in Resources */,
 				E1FB5846194E8C550061511C /* Images.xcassets in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
