@@ -24,6 +24,10 @@
 
 - (void)layoutRefreshView;
 
+- (UIView <JYRefreshView> *)defalutRefreshView;
+
+- (void)checkOffsetsWithChange:(NSDictionary *)change;
+
 @end
 
 @implementation JYPullToRefreshController

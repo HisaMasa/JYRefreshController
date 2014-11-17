@@ -24,6 +24,10 @@
 
 - (void)layoutLoadMoreView;
 
+- (UIView <JYRefreshView> *)defalutRefreshView;
+
+- (void)checkOffsetsWithChange:(NSDictionary *)change;
+
 @end
 
 @implementation JYPullToLoadMoreController
