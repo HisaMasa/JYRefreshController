@@ -14,3 +14,10 @@ typedef NS_ENUM(NSUInteger, JYRefreshState)
   kJYRefreshStateTrigger = 1,
   kJYRefreshStateLoading = 2,
 };
+
+typedef NS_ENUM(NSUInteger, JYLoadMoreState)
+{
+  kJYLoadMoreStateStop = 0,
+  kJYLoadMoreStateTrigger = 1,
+  kJYLoadMoreStateLoading = 2,
+};

@@ -25,6 +25,6 @@
 
 - (void)stopRefreshWithAnimated:(BOOL)animated completion:(void(^)())completion;
 
-- (void)setRefreshView:(UIView <JYRefreshView> *)customView;
+- (void)setCustomView:(UIView <JYRefreshView> *)customView;
 
 @end

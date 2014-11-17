@@ -12,6 +12,7 @@
 
 
 @class JYPullToRefreshController;
+@class JYPullToLoadMoreController;
 
 @protocol JYRefreshView
 
@@ -25,6 +26,16 @@
 
 - (void)pullToRefreshController:(JYPullToRefreshController *)refreshController
                    didSetEnable:(BOOL)enable;
+
+- (void)pullToLoadMoreController:(JYPullToLoadMoreController *)loadMoreController
+                didChangeToState:(JYLoadMoreState)loadMoreState;
+
+- (void)pullToLoadMoreController:(JYPullToLoadMoreController *)loadMoreController
+  didShowhLoadMoreViewPercentage:(CGFloat)percentage;
+
+- (void)pullToLoadMoreController:(JYPullToLoadMoreController *)loadMoreController
+                    didSetEnable:(BOOL)enable;
+
 @end
 
 @interface JYRefreshView : UIView <JYRefreshView>

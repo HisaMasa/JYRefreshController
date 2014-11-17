@@ -8,9 +8,11 @@
 
 #import "DemoViewController.h"
 #import "JYPullToRefreshController.h"
+#import "JYPullToLoadMoreController.h"
 
 @interface DemoViewController () <UITableViewDataSource, UITableViewDelegate>
 @property (nonatomic ,strong) JYPullToRefreshController *refreshController;
+@property (nonatomic ,strong) JYPullToLoadMoreController *loadMoreController;
 @end
 
 @implementation DemoViewController
@@ -35,8 +37,16 @@
   self.scrollView.dataSource = self;
   [self.view addSubview:self.scrollView];
 //  self.scrollView.contentSize = CGSizeMake(self.scrollView.frame.size.width, self.scrollView.frame.size.height * 2);
-//  self.scrollView.contentInset = UIEdgeInsetsMake(100, 0, 20, 0);
+  self.scrollView.contentInset = UIEdgeInsetsMake(100, 0, 100, 0);
   self.refreshController = [[JYPullToRefreshController alloc] initWithScrollView:self.scrollView];
+  self.refreshController.pullToRefreshHandleAction = ^{
+    NSLog(@"pullToRefreshHandleAction");
+  };
+
+  self.loadMoreController = [[JYPullToLoadMoreController alloc] initWithScrollView:self.scrollView];
+  self.loadMoreController.pullToLoadMoreHandleAction = ^{
+    NSLog(@"pullToLoadMoreHandleAction");
+  };
 
   UIBarButtonItem *stopItem = [[UIBarButtonItem alloc] initWithBarButtonSystemItem:UIBarButtonSystemItemStop target:self action:@selector(stopLoading:)];
   self.navigationItem.leftBarButtonItem = stopItem;
@@ -45,11 +55,6 @@
 
 //  self.navigationController.navigationBarHidden = YES;
 
-
-
-//  UIView *view = [[UIView alloc] initWithFrame:CGRectMake(0, 0, 320, 64)];
-//  view.backgroundColor = [UIColor whiteColor];
-//  [self.scrollView addSubview:view];
 
   NSDictionary *viewsDictionary = NSDictionaryOfVariableBindings(_scrollView);
 
@@ -70,13 +75,20 @@
 
 - (void)startLoading:(id)sender
 {
-  [self.refreshController triggerRefreshWithAnimated:YES];
+//  [self.refreshController triggerRefreshWithAnimated:YES];
+  self.loadMoreController.enable = YES;
+  [self.loadMoreController triggerLoadMoreWithAnimated:YES];
 }
 
 - (void)stopLoading:(id)sender
 {
   [self.refreshController stopRefreshWithAnimated:YES completion:^{
 
+  }];
+
+  __weak typeof(self) weakSelf = self;
+  [self.loadMoreController stopLoadMoreWithAnimated:YES completion:^{
+    weakSelf.loadMoreController.enable = NO;
   }];
 }
 

@@ -16,8 +16,7 @@ blue:((float)(rgbValue & 0xFF))/255.0 alpha:1.0]
 @interface JYRefreshView ()
 
 @property (nonatomic, assign) JYRefreshState refreshState;
-@property (nonatomic, strong) NSMutableDictionary *titles;
-@property (nonatomic, strong) NSMutableDictionary *subTitles;
+@property (nonatomic, assign) JYLoadMoreState loadMoreState;
 
 @end
 
@@ -30,8 +29,6 @@ blue:((float)(rgbValue & 0xFF))/255.0 alpha:1.0]
   self = [super initWithFrame:frame];
   if (self) {
     _refreshState = kJYRefreshStateStop;
-    _titles = [NSMutableDictionary dictionary];
-    _subTitles = [NSMutableDictionary dictionary];
   }
   return self;
 }
@@ -90,6 +87,40 @@ blue:((float)(rgbValue & 0xFF))/255.0 alpha:1.0]
       break;
   }
   [self layoutIfNeeded];
+}
+
+- (void)pullToLoadMoreController:(JYPullToLoadMoreController *)loadMoreController
+                didChangeToState:(JYLoadMoreState)loadMoreState
+{
+
+  _loadMoreState = loadMoreState;
+  switch (loadMoreState) {
+    case kJYLoadMoreStateStop:
+      [self.refreshIndicator stopAnimating];
+      break;
+
+    case kJYLoadMoreStateLoading:
+      [self.refreshIndicator startAnimating];
+      break;
+
+    default:
+      break;
+  }
+  [self layoutIfNeeded];
+}
+
+- (void)pullToLoadMoreController:(JYPullToLoadMoreController *)loadMoreController
+    didShowRefreshViewPercentage:(CGFloat)percentage
+{
+  [self.refreshIndicator setPercentage:percentage];
+}
+
+- (void)pullToLoadMoreController:(JYPullToLoadMoreController *)loadMoreController
+                    didSetEnable:(BOOL)enable
+{
+  if (!enable) {
+    [self.refreshIndicator stopAnimating];
+  }
 }
 
 @end

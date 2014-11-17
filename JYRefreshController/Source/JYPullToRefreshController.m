@@ -17,7 +17,7 @@
 
 @property (nonatomic, readwrite, assign) CGFloat originalContentInsetTop;
 
-@property (nonatomic, readwrite, strong) UIView <JYRefreshView> *refreshView;
+@property (nonatomic, readwrite, strong, setter=setCustomView:) UIView <JYRefreshView> *refreshView;
 
 @property (nonatomic, readwrite, assign) JYRefreshState refreshState;
 
@@ -63,6 +63,9 @@
 
 - (void)setEnable:(BOOL)enable
 {
+  if (_enable == enable) { // no change
+    return;
+  }
   _enable = enable;
   if ([self.refreshView respondsToSelector:@selector(pullToRefreshController:didSetEnable:)]) {
     [self.refreshView pullToRefreshController:self didSetEnable:enable];
@@ -128,7 +131,7 @@
                    }];
 }
 
-- (void)setRefreshView:(UIView <JYRefreshView> *)customView
+- (void)setCustomView:(UIView <JYRefreshView> *)customView
 {
   if (_refreshView.superview) {
     [_refreshView removeFromSuperview];
