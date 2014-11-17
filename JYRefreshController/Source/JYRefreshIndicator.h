@@ -18,5 +18,6 @@
 - (void)startAnimating;
 - (void)stopAnimating;
 - (BOOL)isAnimating;
+- (void)setPercentage:(CGFloat)percentage;
 
 @end

@@ -7,113 +7,159 @@
 //
 
 #import "DemoViewController.h"
-#import "JYRefreshController.h"
+#import "JYPullToRefreshController.h"
+#import "JYPullToLoadMoreController.h"
 
-@interface DemoViewController () <JYRefreshControlDelegate, UITableViewDataSource, UITableViewDelegate>
-@property (nonatomic ,strong) JYRefreshController *refreshController;
+@interface DemoViewController () <UITableViewDataSource, UITableViewDelegate>
+
+@property (nonatomic, strong) NSMutableArray *dataSource;
+
+@property (nonatomic ,strong) JYPullToRefreshController *refreshController;
+@property (nonatomic ,strong) JYPullToLoadMoreController *loadMoreController;
 @end
 
 @implementation DemoViewController
 
-- (id)initWithNibName:(NSString *)nibNameOrNil bundle:(NSBundle *)nibBundleOrNil
-{
-  self = [super initWithNibName:nibNameOrNil bundle:nibBundleOrNil];
-  if (self) {
-    // Custom initialization
-  }
-  return self;
-}
-
 - (void)viewDidLoad
 {
   [super viewDidLoad];
-    self.automaticallyAdjustsScrollViewInsets = YES;
-//  self.edgesForExtendedLayout = UIRectEdgeNone;
-  self.scrollView = [[UITableView alloc] initWithFrame:self.view.bounds];
-
-  self.scrollView.delegate = self;
-  self.scrollView.dataSource = self;
-  [self.view addSubview:self.scrollView];
-//  self.scrollView.contentSize = CGSizeMake(self.scrollView.frame.size.width, self.scrollView.frame.size.height * 2);
-//  self.scrollView.contentInset = UIEdgeInsetsMake(20, 0, 20, 0);
-  self.refreshController = [[JYRefreshController alloc] initWithScrollView:self.scrollView];
-  [self.refreshController setCanRefreshDirection:kJYRefreshableDirectionTop | kJYRefreshableDirectionBottom];
-  self.refreshController.delegate = self;
-  self.refreshController.defaultIndicatorColor = [UIColor redColor];
-
-  UIBarButtonItem *stopItem = [[UIBarButtonItem alloc] initWithBarButtonSystemItem:UIBarButtonSystemItemStop target:self action:@selector(stopLoading:)];
-  self.navigationItem.leftBarButtonItem = stopItem;
-  UIBarButtonItem *refreshItem = [[UIBarButtonItem alloc] initWithBarButtonSystemItem:UIBarButtonSystemItemRefresh target:self action:@selector(startLoading:)];
-  self.navigationItem.rightBarButtonItem = refreshItem;
-
-//  self.navigationController.navigationBarHidden = YES;
-
-
-
-//  UIView *view = [[UIView alloc] initWithFrame:CGRectMake(0, 0, 320, 64)];
-//  view.backgroundColor = [UIColor whiteColor];
-//  [self.scrollView addSubview:view];
-
-  NSDictionary *viewsDictionary = NSDictionaryOfVariableBindings(_scrollView);
-
-  NSArray *constraints = [NSLayoutConstraint
-                          constraintsWithVisualFormat:@"H:|[_scrollView]|"
-                          options:0
-                          metrics:nil
-                          views:viewsDictionary];
-  constraints = [constraints arrayByAddingObjectsFromArray:
-                 [NSLayoutConstraint
-                  constraintsWithVisualFormat:@"V:|[_scrollView]|"
-                  options:0
-                  metrics:nil
-                  views:viewsDictionary]];
-  [self.view addConstraints:constraints];
-
+  [self configureDataSource];
+  [self configureScollView];
+  [self configureNavigationItems];
+  [self configureRefreshController];
 }
 
-- (void)startLoading:(id)sender
+#pragma mark - Property
+- (NSMutableArray *)dataSource
 {
-  [self.refreshController triggerRefreshAtDirection:kJYRefreshDirectionBottom animated:YES];
+  if (!_dataSource) {
+    _dataSource = [NSMutableArray array];
+  }
+  return _dataSource;
 }
 
-- (void)stopLoading:(id)sender
+#pragma mark - Configure
+- (void)configureScollView
 {
-  [self.refreshController stopRefreshAtDirection:kJYRefreshDirectionTop animated:YES completion:^{
+  self.tableView.delegate = self;
+  self.tableView.dataSource = self;
 
-  }];
-  [self.refreshController stopRefreshAtDirection:kJYRefreshDirectionBottom animated:YES completion:^{
-
-  }];
-
+  /**
+   * // For testing custom contentInset to uncommon the below line
+   * self.scrollView.contentInset = UIEdgeInsetsMake(100, 0, 100, 0);
+   */
 }
 
-- (void)refreshControl:(JYRefreshController *)refreshControl
-didShowRefreshViewHeight:(CGFloat)progress
-           atDirection:(JYRefreshDirection)direction
+- (void)configureRefreshController
 {
+  __weak typeof(self) weakSelf = self;
+  self.refreshController = [[JYPullToRefreshController alloc] initWithScrollView:self.tableView];
+  self.refreshController.pullToRefreshHandleAction = ^{
+    [weakSelf insertRowAtTop];
+  };
 
+  self.loadMoreController = [[JYPullToLoadMoreController alloc] initWithScrollView:self.tableView];
+  self.loadMoreController.pullToLoadMoreHandleAction = ^{
+    [weakSelf insertRowAtBottom];
+  };
 }
 
-- (BOOL)needAdjustInsets
+- (void)configureNavigationItems
 {
-  return NO;
+  UIBarButtonItem *refreshItem = [[UIBarButtonItem alloc] initWithTitle:@"Refresh"
+                                                                  style:UIBarButtonItemStylePlain
+                                                                 target:self
+                                                                 action:@selector(startRefresh:)];
+
+
+  self.navigationItem.leftBarButtonItem = refreshItem;
+
+  UIBarButtonItem *loadMoreItem = [[UIBarButtonItem alloc] initWithTitle:@"LoadMore"
+                                                                   style:UIBarButtonItemStylePlain
+                                                                  target:self
+                                                                  action:@selector(startLoadMore:)];
+
+  self.navigationItem.rightBarButtonItem = loadMoreItem;
+
+  /**
+   * // For testing hidden navigationBar to uncommon the below line
+   * self.navigationController.navigationBarHidden = YES;
+   */
+}
+
+- (void)configureDataSource
+{
+  for(int i = 0; i < 15; i++) {
+    [self.dataSource addObject:[NSDate dateWithTimeIntervalSinceNow:-(i * 90)]];
+  }
+}
+
+#pragma mark - Refresh methods
+- (void)startRefresh:(id)sender
+{
+  [self.refreshController triggerRefreshWithAnimated:YES];
+}
+
+- (void)startLoadMore:(id)sender
+{
+
+  [self.loadMoreController triggerLoadMoreWithAnimated:YES];
+}
+
+#pragma mark - Actions
+- (void)insertRowAtTop
+{
+  __weak typeof(self) weakSelf = self;
+
+  int64_t delayInSeconds = 1.0;
+  dispatch_time_t popTime = dispatch_time(DISPATCH_TIME_NOW, delayInSeconds * NSEC_PER_SEC);
+  dispatch_after(popTime, dispatch_get_main_queue(), ^(void){
+    [weakSelf.tableView beginUpdates];
+    [weakSelf.dataSource insertObject:[NSDate date] atIndex:0];
+    [weakSelf.tableView insertRowsAtIndexPaths:@[[NSIndexPath indexPathForRow:0 inSection:0]]
+                              withRowAnimation:UITableViewRowAnimationBottom];
+    [weakSelf.tableView endUpdates];
+
+    [weakSelf.refreshController stopRefreshWithAnimated:YES completion:NULL];
+  });
+}
+
+
+- (void)insertRowAtBottom {
+  __weak typeof(self) weakSelf = self;
+
+  int64_t delayInSeconds = 1.0;
+  dispatch_time_t popTime = dispatch_time(DISPATCH_TIME_NOW, delayInSeconds * NSEC_PER_SEC);
+  dispatch_after(popTime, dispatch_get_main_queue(), ^(void){
+    [weakSelf.tableView beginUpdates];
+    [weakSelf.dataSource addObject:[weakSelf.dataSource.lastObject dateByAddingTimeInterval:-90]];
+    [weakSelf.tableView insertRowsAtIndexPaths:@[[NSIndexPath indexPathForRow:weakSelf.dataSource.count - 1 inSection:0]]
+                              withRowAnimation:UITableViewRowAnimationTop];
+    [weakSelf.tableView endUpdates];
+
+    [weakSelf.loadMoreController stopLoadMoreCompletion:NULL];
+  });
 }
 
 #pragma mark - UITableViewDataSource
-- (NSInteger)tableView:(UITableView *)tableView numberOfRowsInSection:(NSInteger)section
-{
-  return 30;
+- (NSInteger)numberOfSectionsInTableView:(UITableView *)tableView {
+  return 1;
 }
 
-- (UITableViewCell *)tableView:(UITableView *)tableView cellForRowAtIndexPath:(NSIndexPath *)indexPath
-{
-  UITableViewCell *cell = [tableView dequeueReusableCellWithIdentifier:@"123"];
-  if (!cell) {
-    cell = [[UITableViewCell alloc] initWithStyle:UITableViewCellStyleDefault reuseIdentifier:@"123"];
-  }
-  cell.textLabel.text = @"wocao";
+- (NSInteger)tableView:(UITableView *)tableView numberOfRowsInSection:(NSInteger)section {
+  return self.dataSource.count;
+}
+
+- (UITableViewCell *)tableView:(UITableView *)tableView cellForRowAtIndexPath:(NSIndexPath *)indexPath {
+  static NSString *identifier = @"Cell";
+  UITableViewCell *cell = [self.tableView dequeueReusableCellWithIdentifier:identifier];
+
+  if (cell == nil)
+    cell = [[UITableViewCell alloc] initWithStyle:UITableViewCellStyleDefault reuseIdentifier:identifier];
+
+  NSDate *date = [self.dataSource objectAtIndex:indexPath.row];
+  cell.textLabel.text = [NSDateFormatter localizedStringFromDate:date dateStyle:NSDateFormatterNoStyle timeStyle:NSDateFormatterMediumStyle];
   return cell;
 }
-
 
 @end

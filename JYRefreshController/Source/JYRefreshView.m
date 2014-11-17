@@ -16,52 +16,29 @@ blue:((float)(rgbValue & 0xFF))/255.0 alpha:1.0]
 @interface JYRefreshView ()
 
 @property (nonatomic, assign) JYRefreshState refreshState;
-@property (nonatomic, strong) NSMutableDictionary *titles;
-@property (nonatomic, strong) NSMutableDictionary *subTitles;
+@property (nonatomic, assign) JYLoadMoreState loadMoreState;
 
 @end
 
 @implementation JYRefreshView
 @synthesize refreshIndicator = _refreshIndicator;
-@synthesize visible = _visible;
 
 
 - (id)initWithFrame:(CGRect)frame
 {
   self = [super initWithFrame:frame];
   if (self) {
-    _refreshState = kJYRefreshStateStop;
-    _titles = [NSMutableDictionary dictionary];
-    _subTitles = [NSMutableDictionary dictionary];
+    _refreshState = JYRefreshStateStop;
   }
   return self;
 }
 
 #pragma mark - layout
-
 - (void)layoutSubviews
 {
   [super layoutSubviews];
   CGPoint boundsCenter = CGPointMake(CGRectGetMidX(self.bounds), CGRectGetMidY(self.bounds));
   [self.refreshIndicator setCenter:boundsCenter];
-}
-
-- (void)layoutSubviewsForRefreshState:(JYRefreshState)refreshState
-{
-  _refreshState = refreshState;
-  switch (refreshState) {
-    case kJYRefreshStateStop:
-      [self.refreshIndicator stopAnimating];
-      break;
-
-    case kJYRefreshStateLoading:
-      [self.refreshIndicator startAnimating];
-      break;
-
-    default:
-      break;
-  }
-  [self setNeedsLayout];
 }
 
 #pragma mark - getter
@@ -76,16 +53,71 @@ blue:((float)(rgbValue & 0xFF))/255.0 alpha:1.0]
   return _refreshIndicator;
 }
 
-#pragma mark - setter
-- (void)setVisible:(BOOL)visible
+#pragma mark - JYRefreshView Protocol
+- (void)pullToRefreshController:(JYPullToRefreshController *)refreshController
+   didShowRefreshViewPercentage:(CGFloat)percentage
 {
-  _visible = visible;
-  if (visible) {
-    self.hidden = NO;
-    self.refreshIndicator.hidden = NO;
-  } else {
-    self.hidden = YES;
-    self.refreshIndicator.hidden = YES;
+  [self.refreshIndicator setPercentage:percentage];
+}
+
+- (void)pullToRefreshController:(JYPullToRefreshController *)refreshController
+                   didSetEnable:(BOOL)enable
+{
+  if (!enable) {
+    [self.refreshIndicator stopAnimating];
+  }
+}
+
+- (void)pullToRefreshController:(JYPullToRefreshController *)refreshController
+               didChangeToState:(JYRefreshState)refreshState;
+{
+  _refreshState = refreshState;
+  switch (refreshState) {
+    case JYRefreshStateStop:
+      [self.refreshIndicator stopAnimating];
+      break;
+
+    case JYRefreshStateLoading:
+      [self.refreshIndicator startAnimating];
+      break;
+
+    default:
+      break;
+  }
+  [self layoutIfNeeded];
+}
+
+- (void)pullToLoadMoreController:(JYPullToLoadMoreController *)loadMoreController
+                didChangeToState:(JYLoadMoreState)loadMoreState
+{
+
+  _loadMoreState = loadMoreState;
+  switch (loadMoreState) {
+    case JYLoadMoreStateStop:
+      [self.refreshIndicator stopAnimating];
+      break;
+
+    case JYLoadMoreStateLoading:
+      [self.refreshIndicator startAnimating];
+      break;
+
+    default:
+      break;
+  }
+  [self layoutIfNeeded];
+}
+
+- (void)pullToLoadMoreController:(JYPullToLoadMoreController *)loadMoreController
+  didShowhLoadMoreViewPercentage:(CGFloat)percentage
+{
+  [self.refreshIndicator setPercentage:percentage];
+}
+
+- (void)pullToLoadMoreController:(JYPullToLoadMoreController *)loadMoreController
+                    didSetEnable:(BOOL)enable
+{
+  if (!enable) {
+    [self.refreshIndicator stopAnimating];
   }
 }
 

@@ -7,15 +7,30 @@
 //
 
 #import <UIKit/UIKit.h>
-#import "JYRefreshConstant.h"
 #import "JYRefreshIndicator.h"
+#import "JYRefreshController.h"
 
+@protocol JYRefreshView
 
-@protocol JYRefreshView <NSObject>
+@optional
 
-@property (nonatomic, assign) BOOL visible;
+- (void)pullToRefreshController:(JYPullToRefreshController *)refreshController
+               didChangeToState:(JYRefreshState)refreshState;
 
-- (void)layoutSubviewsForRefreshState:(JYRefreshState)state;
+- (void)pullToRefreshController:(JYPullToRefreshController *)refreshController
+   didShowRefreshViewPercentage:(CGFloat)percentage;
+
+- (void)pullToRefreshController:(JYPullToRefreshController *)refreshController
+                   didSetEnable:(BOOL)enable;
+
+- (void)pullToLoadMoreController:(JYPullToLoadMoreController *)loadMoreController
+                didChangeToState:(JYLoadMoreState)loadMoreState;
+
+- (void)pullToLoadMoreController:(JYPullToLoadMoreController *)loadMoreController
+  didShowhLoadMoreViewPercentage:(CGFloat)percentage;
+
+- (void)pullToLoadMoreController:(JYPullToLoadMoreController *)loadMoreController
+                    didSetEnable:(BOOL)enable;
 
 @end
 

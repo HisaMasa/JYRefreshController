@@ -12,7 +12,8 @@
 static NSString *const JY_ANIMATION_KEY = @"spinkit-anim";
 
 @interface JYRefreshIndicator ()
-@property (nonatomic, assign, getter = isStopped) BOOL stopped;
+@property (nonatomic, assign) BOOL stopped;
+@property (nonatomic, strong) CALayer *cycleLayer;
 @end
 
 @implementation JYRefreshIndicator
@@ -24,6 +25,7 @@ static NSString *const JY_ANIMATION_KEY = @"spinkit-anim";
   if (self) {
     _color = color;
     _hidesWhenStopped = YES;
+    _stopped = YES;
 
     [self sizeToFit];
 
@@ -36,20 +38,27 @@ static NSString *const JY_ANIMATION_KEY = @"spinkit-anim";
                                              selector:@selector(applicationDidEnterBackground)
                                                  name:UIApplicationDidEnterBackgroundNotification
                                                object:nil];
-
-    //    CGFloat barWidth = CGRectGetWidth(self.bounds) / 5.0;
-
-    //    for (NSInteger i=0; i < 5; i+=1) {
-    //      CALayer *layer = [CALayer layer];
-    //      layer.backgroundColor = _color.CGColor;
-    //      layer.frame = CGRectMake(barWidth * i, 0.0, barWidth - 3.0, CGRectGetHeight(self.bounds));
-    //      layer.transform = CATransform3DMakeScale(1.0, 1.0, 0.0);
-    //      [self.layer addSublayer:layer];
-    //    }
   }
   return self;
 }
 
+#pragma mark - Property
+- (CALayer *)cycleLayer
+{
+  if (!_cycleLayer) {
+    _cycleLayer= [CALayer layer];
+    _cycleLayer.frame = CGRectInset(self.bounds, 2.0, 2.0);
+    _cycleLayer.backgroundColor = _color.CGColor;
+    _cycleLayer.anchorPoint = CGPointMake(0.5, 0.5);
+    _cycleLayer.opacity = 1;
+    _cycleLayer.cornerRadius = CGRectGetHeight(_cycleLayer.bounds) * 0.5;
+    _cycleLayer.transform = CATransform3DMakeScale(0.2, 0.2, 0.0);
+    [self.layer addSublayer:_cycleLayer];
+  }
+  return _cycleLayer;
+}
+
+#pragma mark - Notification
 - (void)applicationWillEnterForeground
 {
   if (self.stopped) {
@@ -66,13 +75,12 @@ static NSString *const JY_ANIMATION_KEY = @"spinkit-anim";
 
 - (BOOL)isAnimating
 {
-  return !self.isStopped;
+  return !self.stopped;
 }
 
 - (void)startAnimating
 {
-  if (self.isStopped) {
-    self.hidden = NO;
+  if (self.stopped) {
     self.stopped = NO;
     [self resumeLayers];
   }
@@ -82,41 +90,43 @@ static NSString *const JY_ANIMATION_KEY = @"spinkit-anim";
 {
   if ([self isAnimating]) {
     if (self.hidesWhenStopped) {
-      self.hidden = YES;
+      [UIView animateWithDuration:0.3f animations:^{
+        self.cycleLayer.transform = CATransform3DMakeScale(0.0, 0.0, 0.0);
+      }];
     }
     [self pauseLayers];
     self.stopped = YES;
   }
 }
 
+- (void)setPercentage:(CGFloat)percentage
+{
+  if (![self isAnimating]) {
+    self.cycleLayer.transform = CATransform3DMakeScale(percentage, percentage, 0.0);
+  }
+}
+
 - (void)pauseLayers
 {
-  [self.layer.sublayers enumerateObjectsUsingBlock:^(id obj, NSUInteger idx, BOOL *stop) {
-    CALayer *layer = obj;
-    [layer removeAnimationForKey:JY_ANIMATION_KEY];
-  }];
+  [self.cycleLayer removeAnimationForKey:JY_ANIMATION_KEY];
 }
 
 - (void)resumeLayers
 {
   NSTimeInterval beginTime = CACurrentMediaTime();
 
-  CALayer *circle = [CALayer layer];
-  circle.frame = CGRectInset(self.bounds, 2.0, 2.0);
-  circle.backgroundColor = _color.CGColor;
-  circle.anchorPoint = CGPointMake(0.5, 0.5);
-  circle.opacity = 0.2;
-  circle.cornerRadius = CGRectGetHeight(circle.bounds) * 0.5;
-  circle.transform = CATransform3DMakeScale(0.2, 0.2, 0.0);
+  self.cycleLayer.opacity = 1;
+  self.cycleLayer.transform = CATransform3DMakeScale(1.0, 1.0, 0.0);
 
   CAKeyframeAnimation *scaleAnim = [CAKeyframeAnimation animationWithKeyPath:@"transform"];
   scaleAnim.values = @[
+                       [NSValue valueWithCATransform3D:CATransform3DMakeScale(1.0, 1.0, 0.0)],
                        [NSValue valueWithCATransform3D:CATransform3DMakeScale(0.2, 0.2, 0.0)],
-                       [NSValue valueWithCATransform3D:CATransform3DMakeScale(1.0, 1.0, 0.0)]
+                       [NSValue valueWithCATransform3D:CATransform3DMakeScale(1.0, 1.0, 0.0)],
                        ];
 
   CAKeyframeAnimation *opacityAnim = [CAKeyframeAnimation animationWithKeyPath:@"opacity"];
-  opacityAnim.values = @[@(1.0), @(0.0)];
+  opacityAnim.values = @[@(1.0), @(0.0), @(1.0)];
 
   CAAnimationGroup *animGroup = [CAAnimationGroup animation];
   animGroup.removedOnCompletion = NO;
@@ -126,8 +136,7 @@ static NSString *const JY_ANIMATION_KEY = @"spinkit-anim";
   animGroup.animations = @[scaleAnim, opacityAnim];
   animGroup.timingFunction = [CAMediaTimingFunction functionWithName:kCAMediaTimingFunctionEaseInEaseOut];
 
-  [self.layer addSublayer:circle];
-  [circle addAnimation:animGroup forKey:JY_ANIMATION_KEY];
+  [self.cycleLayer addAnimation:animGroup forKey:JY_ANIMATION_KEY];
 }
 
 - (CGSize)sizeThatFits:(CGSize)size
