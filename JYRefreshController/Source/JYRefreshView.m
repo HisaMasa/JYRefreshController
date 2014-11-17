@@ -28,7 +28,7 @@ blue:((float)(rgbValue & 0xFF))/255.0 alpha:1.0]
 {
   self = [super initWithFrame:frame];
   if (self) {
-    _refreshState = kJYRefreshStateStop;
+    _refreshState = JYRefreshStateStop;
   }
   return self;
 }
@@ -73,12 +73,12 @@ blue:((float)(rgbValue & 0xFF))/255.0 alpha:1.0]
 {
   _refreshState = refreshState;
   switch (refreshState) {
-    case kJYRefreshStateStop:
+    case JYRefreshStateStop:
       NSLog(@"stop");
       [self.refreshIndicator stopAnimating];
       break;
 
-    case kJYRefreshStateLoading:
+    case JYRefreshStateLoading:
       NSLog(@"start");
       [self.refreshIndicator startAnimating];
       break;
@@ -95,11 +95,11 @@ blue:((float)(rgbValue & 0xFF))/255.0 alpha:1.0]
 
   _loadMoreState = loadMoreState;
   switch (loadMoreState) {
-    case kJYLoadMoreStateStop:
+    case JYLoadMoreStateStop:
       [self.refreshIndicator stopAnimating];
       break;
 
-    case kJYLoadMoreStateLoading:
+    case JYLoadMoreStateLoading:
       [self.refreshIndicator startAnimating];
       break;
 

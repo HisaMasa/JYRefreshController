@@ -8,8 +8,8 @@
 
 #import "JYPullToLoadMoreController.h"
 
-#define kJYLoadMoreViewDefaultHeight 44.0f
-#define kJYLoadMoreViewAnimationDuration 0.3f
+#define JYLoadMoreViewDefaultHeight 44.0f
+#define JYLoadMoreViewAnimationDuration 0.3f
 
 @interface JYPullToLoadMoreController ()
 
@@ -84,7 +84,7 @@
     contentInset.bottom = self.originalContentInsetBottom;
   }
 
-  [UIView animateWithDuration:kJYLoadMoreViewAnimationDuration
+  [UIView animateWithDuration:JYLoadMoreViewAnimationDuration
                         delay:0
                       options:UIViewAnimationOptionAllowUserInteraction | UIViewAnimationOptionBeginFromCurrentState
                    animations:^{
@@ -95,7 +95,7 @@
 #pragma mark - Action
 - (void)triggerLoadMoreWithAnimated:(BOOL)animated
 {
-  if (!self.enable || self.loadMoreState == kJYLoadMoreStateLoading) {
+  if (!self.enable || self.loadMoreState == JYLoadMoreStateLoading) {
     return;
   }
   UIEdgeInsets contentInset = self.scrollView.contentInset;
@@ -103,8 +103,8 @@
                                       - self.scrollView.bounds.size.height
                                       + contentInset.bottom);
 
-  self.loadMoreState = kJYLoadMoreStateLoading;
-  NSTimeInterval duration = animated ? kJYLoadMoreViewAnimationDuration : 0.0f;
+  self.loadMoreState = JYLoadMoreStateLoading;
+  NSTimeInterval duration = animated ? JYLoadMoreViewAnimationDuration : 0.0f;
   [UIView animateWithDuration:duration
                         delay:0
                       options:UIViewAnimationOptionAllowUserInteraction | UIViewAnimationOptionBeginFromCurrentState
@@ -119,10 +119,10 @@
 
 - (void)stopLoadMoreWithAnimated:(BOOL)animated completion:(void(^)())completion
 {
-  if (!self.enable || self.loadMoreState == kJYLoadMoreStateStop) {
+  if (!self.enable || self.loadMoreState == JYLoadMoreStateStop) {
     return;
   }
-  self.loadMoreState = kJYLoadMoreStateStop;
+  self.loadMoreState = JYLoadMoreStateStop;
   if (completion) {
     completion();
   }
@@ -165,7 +165,7 @@
 
   isTriggered = contentOffset.y >= threshold;
   if ([self.loadMoreView respondsToSelector:@selector(pullToLoadMoreController:didShowhLoadMoreViewPercentage:)]
-      && self.loadMoreState == kJYLoadMoreStateStop) {
+      && self.loadMoreState == JYLoadMoreStateStop) {
 
     CGFloat refreshViewVisibleHeight = contentOffset.y - threshold + refreshViewHeight;
     CGFloat percentage = refreshViewVisibleHeight / refreshViewHeight;
@@ -175,15 +175,15 @@
   }
 
   if (self.scrollView.isDragging) {
-    if (isTriggered && self.loadMoreState == kJYLoadMoreStateStop) {
-      self.loadMoreState = kJYLoadMoreStateTrigger;
-    } else if (!isTriggered && self.loadMoreState == kJYLoadMoreStateTrigger) {
-      self.loadMoreState = kJYLoadMoreStateStop;
+    if (isTriggered && self.loadMoreState == JYLoadMoreStateStop) {
+      self.loadMoreState = JYLoadMoreStateTrigger;
+    } else if (!isTriggered && self.loadMoreState == JYLoadMoreStateTrigger) {
+      self.loadMoreState = JYLoadMoreStateStop;
     }
   }
   else {
-    if (self.loadMoreState == kJYLoadMoreStateTrigger) {
-      self.loadMoreState = kJYLoadMoreStateLoading;
+    if (self.loadMoreState == JYLoadMoreStateTrigger) {
+      self.loadMoreState = JYLoadMoreStateLoading;
       if (self.pullToLoadMoreHandleAction) {
         self.pullToLoadMoreHandleAction();
       }
@@ -193,7 +193,7 @@
 
 - (UIView <JYRefreshView> *)defalutRefreshView
 {
-  CGRect frame = CGRectMake(0, 0, CGRectGetWidth(self.scrollView.bounds), kJYLoadMoreViewDefaultHeight);
+  CGRect frame = CGRectMake(0, 0, CGRectGetWidth(self.scrollView.bounds), JYLoadMoreViewDefaultHeight);
   JYRefreshView *refreshView = [[JYRefreshView alloc] initWithFrame:frame];
   refreshView.autoresizingMask = UIViewAutoresizingFlexibleWidth;
   return refreshView;

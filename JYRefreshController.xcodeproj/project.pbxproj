@@ -38,14 +38,14 @@
 
 /* Begin PBXFileReference section */
 		E16D574E1A1469100012031B /* JYPullToRefreshController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = JYPullToRefreshController.h; sourceTree = "<group>"; };
-		E16D574F1A1469100012031B /* JYPullToRefreshController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = JYPullToRefreshController.m; sourceTree = "<group>"; };
-		E1B044311952BEB00038569E /* JYRefreshConstant.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = JYRefreshConstant.h; sourceTree = "<group>"; };
+		E16D574F1A1469100012031B /* JYPullToRefreshController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; lineEnding = 0; path = JYPullToRefreshController.m; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.objc; };
+		E1B044311952BEB00038569E /* JYRefreshConstant.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; lineEnding = 0; path = JYRefreshConstant.h; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.objcpp; };
 		E1B044341952BEB00038569E /* JYRefreshIndicator.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = JYRefreshIndicator.h; sourceTree = "<group>"; };
 		E1B044351952BEB00038569E /* JYRefreshIndicator.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = JYRefreshIndicator.m; sourceTree = "<group>"; };
 		E1B044361952BEB00038569E /* JYRefreshView.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = JYRefreshView.h; sourceTree = "<group>"; };
-		E1B044371952BEB00038569E /* JYRefreshView.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = JYRefreshView.m; sourceTree = "<group>"; };
+		E1B044371952BEB00038569E /* JYRefreshView.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; lineEnding = 0; path = JYRefreshView.m; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.objc; };
 		E1D3B1AD1A1993E4007D1B9B /* JYPullToLoadMoreController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = JYPullToLoadMoreController.h; sourceTree = "<group>"; };
-		E1D3B1AE1A1993E4007D1B9B /* JYPullToLoadMoreController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = JYPullToLoadMoreController.m; sourceTree = "<group>"; };
+		E1D3B1AE1A1993E4007D1B9B /* JYPullToLoadMoreController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; lineEnding = 0; path = JYPullToLoadMoreController.m; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.objc; };
 		E1FB5830194E8C550061511C /* JYRefreshController.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = JYRefreshController.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		E1FB5833194E8C550061511C /* Foundation.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Foundation.framework; path = System/Library/Frameworks/Foundation.framework; sourceTree = SDKROOT; };
 		E1FB5835194E8C550061511C /* CoreGraphics.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreGraphics.framework; path = System/Library/Frameworks/CoreGraphics.framework; sourceTree = SDKROOT; };

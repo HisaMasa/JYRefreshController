@@ -8,8 +8,8 @@
 
 #import "JYPullToRefreshController.h"
 
-#define kJYRefreshViewDefaultHeight 44.0f
-#define kJYRefreshViewAnimationDuration 0.3f
+#define JYRefreshViewDefaultHeight 44.0f
+#define JYRefreshViewAnimationDuration 0.3f
 
 @interface JYPullToRefreshController ()
 
@@ -76,7 +76,7 @@
 #pragma mark - Action
 - (void)triggerRefreshWithAnimated:(BOOL)animated
 {
-  if (!self.enable || self.refreshState == kJYRefreshStateLoading) {
+  if (!self.enable || self.refreshState == JYRefreshStateLoading) {
     return;
   }
   UIEdgeInsets contentInset = self.scrollView.contentInset;
@@ -91,8 +91,8 @@
 
   contentOffset = CGPointMake(0, -contentInset.top);
 
-  self.refreshState = kJYRefreshStateLoading;
-  NSTimeInterval duration = animated ? kJYRefreshViewAnimationDuration : 0.0f;
+  self.refreshState = JYRefreshStateLoading;
+  NSTimeInterval duration = animated ? JYRefreshViewAnimationDuration : 0.0f;
   [UIView animateWithDuration:duration
                         delay:0
                       options:UIViewAnimationOptionAllowUserInteraction | UIViewAnimationOptionBeginFromCurrentState
@@ -108,15 +108,15 @@
 
 - (void)stopRefreshWithAnimated:(BOOL)animated completion:(void(^)())completion
 {
-  if (!self.enable || self.refreshState == kJYRefreshStateStop) {
+  if (!self.enable || self.refreshState == JYRefreshStateStop) {
     return;
   }
-  self.refreshState = kJYRefreshStateStop;
+  self.refreshState = JYRefreshStateStop;
 
   UIEdgeInsets contentInset = self.scrollView.contentInset;
   contentInset.top -= self.refreshView.frame.size.height;
 
-  NSTimeInterval duration = animated ? kJYRefreshViewAnimationDuration : 0.0f;
+  NSTimeInterval duration = animated ? JYRefreshViewAnimationDuration : 0.0f;
   [UIView animateWithDuration:duration
                         delay:0
                       options:UIViewAnimationOptionAllowUserInteraction | UIViewAnimationOptionBeginFromCurrentState
@@ -165,7 +165,7 @@
 
   isTriggered = contentOffset.y <= threshold;
   if ([self.refreshView respondsToSelector:@selector(pullToRefreshController:didShowRefreshViewPercentage:)]
-      && self.refreshState == kJYRefreshStateStop) {
+      && self.refreshState == JYRefreshStateStop) {
 
     CGFloat refreshViewVisibleHeight = -contentOffset.y - contentInset.top;
     CGFloat percentage = refreshViewVisibleHeight / refreshViewHeight;
@@ -175,22 +175,22 @@
   }
 
   if (self.scrollView.isDragging) {
-    if (isTriggered && self.refreshState == kJYRefreshStateStop) {
-      self.refreshState = kJYRefreshStateTrigger;
-    } else if (!isTriggered && self.refreshState == kJYRefreshStateTrigger) {
-      self.refreshState = kJYRefreshStateStop;
+    if (isTriggered && self.refreshState == JYRefreshStateStop) {
+      self.refreshState = JYRefreshStateTrigger;
+    } else if (!isTriggered && self.refreshState == JYRefreshStateTrigger) {
+      self.refreshState = JYRefreshStateStop;
     }
   }
   else {
-    if (self.refreshState == kJYRefreshStateTrigger) {
-      self.refreshState = kJYRefreshStateLoading;
+    if (self.refreshState == JYRefreshStateTrigger) {
+      self.refreshState = JYRefreshStateLoading;
 
       contentInset = UIEdgeInsetsMake(refreshViewHeight + contentInset.top,
                                       contentInset.left,
                                       contentInset.bottom,
                                       contentInset.right);
 
-      [UIView animateWithDuration:kJYRefreshViewAnimationDuration
+      [UIView animateWithDuration:JYRefreshViewAnimationDuration
                             delay:0
                           options:UIViewAnimationOptionAllowUserInteraction | UIViewAnimationOptionBeginFromCurrentState
                        animations:^{
@@ -206,7 +206,7 @@
 
 - (UIView <JYRefreshView> *)defalutRefreshView
 {
-  CGRect frame = CGRectMake(0, 0, CGRectGetWidth(self.scrollView.bounds), kJYRefreshViewDefaultHeight);
+  CGRect frame = CGRectMake(0, 0, CGRectGetWidth(self.scrollView.bounds), JYRefreshViewDefaultHeight);
   JYRefreshView *refreshView = [[JYRefreshView alloc] initWithFrame:frame];
   refreshView.autoresizingMask = UIViewAutoresizingFlexibleWidth;
   return refreshView;
