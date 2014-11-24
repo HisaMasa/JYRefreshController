@@ -18,7 +18,7 @@
 
 @property (nonatomic, readwrite, assign) CGFloat originalContentInsetBottom;
 
-@property (nonatomic, readwrite, strong, setter=setCustomView:) UIView <JYRefreshView> *loadMoreView;
+@property (nonatomic, readwrite, strong) UIView <JYRefreshView> *loadMoreView;
 
 @property (nonatomic, readwrite, assign) JYLoadMoreState loadMoreState;
 
@@ -50,7 +50,7 @@
                      options:NSKeyValueObservingOptionNew
                      context:NULL];
 
-    self.loadMoreView = [self defalutRefreshView];
+    [self setCustomView:[self defalutRefreshView]];
     self.enable = YES;
   }
   return self;

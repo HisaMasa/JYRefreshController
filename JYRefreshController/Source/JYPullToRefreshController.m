@@ -18,7 +18,7 @@
 
 @property (nonatomic, readwrite, assign) CGFloat originalContentInsetTop;
 
-@property (nonatomic, readwrite, strong, setter=setCustomView:) UIView <JYRefreshView> *refreshView;
+@property (nonatomic, readwrite, strong) UIView <JYRefreshView> *refreshView;
 
 @property (nonatomic, readwrite, assign) JYRefreshState refreshState;
 
@@ -47,7 +47,7 @@
                      options:NSKeyValueObservingOptionNew
                      context:NULL];
 
-    self.refreshView = [self defalutRefreshView];
+    [self setCustomView:[self defalutRefreshView]];
   }
   return self;
 }
