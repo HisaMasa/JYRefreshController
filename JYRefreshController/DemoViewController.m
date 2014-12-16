@@ -46,7 +46,7 @@
 
   /**
    * // For testing custom contentInset to uncommon the below line
-   * self.scrollView.contentInset = UIEdgeInsetsMake(100, 0, 100, 0);
+   * self.tableView.contentInset = UIEdgeInsetsMake(100, 0, 100, 0);
    */
 }
 
