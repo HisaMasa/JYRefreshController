@@ -95,7 +95,9 @@
                                   contentInset.right);
 
   contentOffset = CGPointMake(0, -contentInset.top);
-
+  if ([self.refreshView respondsToSelector:@selector(pullToRefreshController:didShowRefreshViewPercentage:)]) {
+    [self.refreshView pullToRefreshController:self didShowRefreshViewPercentage:1.0];
+  }
   self.refreshState = JYRefreshStateLoading;
   NSTimeInterval duration = animated ? JYRefreshViewAnimationDuration : 0.0f;
   [UIView animateWithDuration:duration

@@ -108,6 +108,9 @@
                                       - self.scrollView.bounds.size.height
                                       + contentInset.bottom);
 
+  if ([self.loadMoreView respondsToSelector:@selector(pullToLoadMoreController:didShowhLoadMoreViewPercentage:)]){
+    [self.loadMoreView pullToLoadMoreController:self didShowhLoadMoreViewPercentage:1.0];
+  }
   self.loadMoreState = JYLoadMoreStateLoading;
   NSTimeInterval duration = animated ? JYLoadMoreViewAnimationDuration : 0.0f;
   [UIView animateWithDuration:duration

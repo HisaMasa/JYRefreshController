@@ -1,6 +1,6 @@
 Pod::Spec.new do |s|
   s.name     = 'JYRefreshController'
-  s.version  = '0.2.0'
+  s.version  = '0.2.1'
   s.license  = 'MIT'
   s.summary  = 'An easy way to add pull-to-refresh or pull-to-loadMore to any kind of UIScrollView.'
   s.homepage = 'https://github.com/goldfish0506/JYRefreshController'
