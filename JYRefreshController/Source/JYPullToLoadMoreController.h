@@ -23,6 +23,11 @@ typedef NS_ENUM(NSUInteger, JYLoadMoreState)
 
 @property (nonatomic, assign) BOOL enable;
 
+/**
+ *  Set to NO, if need user dragging to trigger load more action. Default is YES.
+ */
+@property (nonatomic, assign) BOOL autoLoadMore;
+
 @property (nonatomic, readonly, assign) JYLoadMoreState loadMoreState;
 
 @property (nonatomic, copy) void(^pullToLoadMoreHandleAction)();

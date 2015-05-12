@@ -39,6 +39,7 @@
   self = [super init];
   if (self) {
     _scrollView = scrollView;
+    _autoLoadMore = YES;
     _originalContentInsetBottom = scrollView.contentInset.bottom;
 
     [self.scrollView addObserver:self
@@ -83,7 +84,7 @@
   [self layoutLoadMoreView];
 
   UIEdgeInsets contentInset = self.scrollView.contentInset;
-  if (_enable) {
+  if (_enable && self.autoLoadMore) {
     contentInset.bottom += self.loadMoreView.frame.size.height;
   } else {
     contentInset.bottom = self.originalContentInsetBottom;
@@ -97,27 +98,48 @@
                    } completion:NULL];
 }
 
+- (void)setAutoLoadMore:(BOOL)autoLoadMore
+{
+  if (_autoLoadMore == autoLoadMore) {
+    return;
+  }
+  _autoLoadMore = autoLoadMore;
+  UIEdgeInsets contentInset = self.scrollView.contentInset;
+  if (_enable && _autoLoadMore) {
+    contentInset.bottom += self.loadMoreView.frame.size.height;
+  } else {
+    contentInset.bottom = self.originalContentInsetBottom;
+  }
+  self.scrollView.contentInset = contentInset;
+}
+
 #pragma mark - Action
 - (void)triggerLoadMoreWithAnimated:(BOOL)animated
 {
   if (!self.enable || self.loadMoreState == JYLoadMoreStateLoading) {
     return;
   }
-  UIEdgeInsets contentInset = self.scrollView.contentInset;
+  CGFloat refreshViewHeight = self.loadMoreView.frame.size.height;
   CGPoint contentOffset = CGPointMake(0, self.scrollView.contentSize.height
                                       - self.scrollView.bounds.size.height
-                                      + contentInset.bottom);
+                                      + refreshViewHeight);
 
   if ([self.loadMoreView respondsToSelector:@selector(pullToLoadMoreController:didShowhLoadMoreViewPercentage:)]){
     [self.loadMoreView pullToLoadMoreController:self didShowhLoadMoreViewPercentage:1.0];
   }
   self.loadMoreState = JYLoadMoreStateLoading;
+  UIEdgeInsets contentInset = self.scrollView.contentInset;
+  contentInset.bottom += refreshViewHeight;
+
   NSTimeInterval duration = animated ? JYLoadMoreViewAnimationDuration : 0.0f;
   [UIView animateWithDuration:duration
                         delay:0
                       options:UIViewAnimationOptionAllowUserInteraction | UIViewAnimationOptionBeginFromCurrentState
                    animations:^{
                      self.scrollView.contentOffset = contentOffset;
+                     if (!self.autoLoadMore) {
+                       self.scrollView.contentInset = contentInset;
+                     }
                    } completion:^(BOOL finished) {
                      if (self.pullToLoadMoreHandleAction) {
                        self.pullToLoadMoreHandleAction();
@@ -131,8 +153,32 @@
     return;
   }
   self.loadMoreState = JYLoadMoreStateStop;
-  if (completion) {
-    completion();
+
+  if (self.autoLoadMore) {
+    if (completion) {
+      completion();
+    }
+  }
+  else {
+    CGFloat refreshViewHeight = self.loadMoreView.frame.size.height;
+    UIEdgeInsets contentInset = self.scrollView.contentInset;
+    contentInset.bottom -= refreshViewHeight;
+    CGPoint contentOffset = CGPointMake(0, self.scrollView.contentSize.height
+                                           - self.scrollView.bounds.size.height
+                                           + refreshViewHeight);
+    [UIView animateWithDuration:JYLoadMoreViewAnimationDuration
+                          delay:0
+                        options:UIViewAnimationOptionAllowUserInteraction | UIViewAnimationOptionBeginFromCurrentState
+                     animations:^{
+                       self.scrollView.contentInset = contentInset;
+                       self.scrollView.contentOffset = contentOffset;
+                     } completion:^(BOOL finished) {
+                       if (finished) {
+                         if (completion) {
+                           completion();
+                         }
+                       }
+                     }];
   }
 }
 
@@ -168,7 +214,7 @@
   BOOL isTriggered = NO;
   CGFloat refreshViewHeight = self.loadMoreView.frame.size.height;
   CGFloat threshold = self.scrollView.contentSize.height
-                    + self.scrollView.contentInset.bottom
+                    + refreshViewHeight
                     - self.scrollView.bounds.size.height;
 
   isTriggered = contentOffset.y >= threshold;
@@ -192,8 +238,25 @@
   else {
     if (self.loadMoreState == JYLoadMoreStateTrigger) {
       self.loadMoreState = JYLoadMoreStateLoading;
-      if (self.pullToLoadMoreHandleAction) {
-        self.pullToLoadMoreHandleAction();
+
+      if (self.autoLoadMore) {
+        if (self.pullToLoadMoreHandleAction) {
+          self.pullToLoadMoreHandleAction();
+        }
+      }
+      else {
+        UIEdgeInsets contentInset = self.scrollView.contentInset;
+        contentInset.bottom += refreshViewHeight;
+        [UIView animateWithDuration:JYLoadMoreViewAnimationDuration
+                              delay:0
+                            options:UIViewAnimationOptionAllowUserInteraction | UIViewAnimationOptionBeginFromCurrentState
+                         animations:^{
+                           self.scrollView.contentInset = contentInset;
+                         } completion:^(BOOL finished) {
+                           if (self.pullToLoadMoreHandleAction) {
+                             self.pullToLoadMoreHandleAction();
+                           }
+                         }];
       }
     }
   }
