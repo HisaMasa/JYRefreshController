@@ -43,9 +43,9 @@
     _originalContentInsetBottom = scrollView.contentInset.bottom;
 
     [self.scrollView addObserver:self
-                  forKeyPath:@"contentOffset"
-                     options:NSKeyValueObservingOptionNew
-                     context:NULL];
+                      forKeyPath:@"contentOffset"
+                         options:NSKeyValueObservingOptionNew
+                         context:NULL];
     [_scrollView addObserver:self
                   forKeyPath:@"contentSize"
                      options:NSKeyValueObservingOptionNew
@@ -164,8 +164,8 @@
     UIEdgeInsets contentInset = self.scrollView.contentInset;
     contentInset.bottom -= refreshViewHeight;
     CGPoint contentOffset = CGPointMake(0, self.scrollView.contentSize.height
-                                           - self.scrollView.bounds.size.height
-                                           + refreshViewHeight);
+                                        - self.scrollView.bounds.size.height
+                                        + refreshViewHeight);
     [UIView animateWithDuration:JYLoadMoreViewAnimationDuration
                           delay:0
                         options:UIViewAnimationOptionAllowUserInteraction | UIViewAnimationOptionBeginFromCurrentState
@@ -214,8 +214,11 @@
   BOOL isTriggered = NO;
   CGFloat refreshViewHeight = self.loadMoreView.frame.size.height;
   CGFloat threshold = self.scrollView.contentSize.height
-                    + refreshViewHeight
-                    - self.scrollView.bounds.size.height;
+  + self.scrollView.contentInset.bottom
+  - self.scrollView.bounds.size.height;
+  if (!self.autoLoadMore) {
+    threshold += refreshViewHeight;
+  }
 
   isTriggered = contentOffset.y >= threshold;
   if ([self.loadMoreView respondsToSelector:@selector(pullToLoadMoreController:didShowhLoadMoreViewPercentage:)]
