@@ -52,7 +52,7 @@
                      context:NULL];
 
     [self setCustomView:[self defalutRefreshView]];
-    self.enable = YES;
+    [self setEnable:YES withAnimation:NO];
   }
   return self;
 }
@@ -74,6 +74,11 @@
 
 - (void)setEnable:(BOOL)enable
 {
+  [self setEnable:enable withAnimation:YES];
+}
+
+- (void)setEnable:(BOOL)enable withAnimation:(BOOL)animated
+{
   if (_enable == enable) { // no change
     return;
   }
@@ -90,7 +95,7 @@
     contentInset.bottom = self.originalContentInsetBottom;
   }
 
-  [UIView animateWithDuration:JYLoadMoreViewAnimationDuration
+  [UIView animateWithDuration:(animated ? JYLoadMoreViewAnimationDuration : 0)
                         delay:0
                       options:UIViewAnimationOptionAllowUserInteraction | UIViewAnimationOptionBeginFromCurrentState
                    animations:^{
