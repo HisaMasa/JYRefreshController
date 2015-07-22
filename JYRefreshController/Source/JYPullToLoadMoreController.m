@@ -95,12 +95,17 @@
     contentInset.bottom = self.originalContentInsetBottom;
   }
 
-  [UIView animateWithDuration:(animated ? JYLoadMoreViewAnimationDuration : 0)
-                        delay:0
-                      options:UIViewAnimationOptionAllowUserInteraction | UIViewAnimationOptionBeginFromCurrentState
-                   animations:^{
-                     self.scrollView.contentInset = contentInset;
-                   } completion:NULL];
+  if (animated) {
+    [UIView animateWithDuration:JYLoadMoreViewAnimationDuration
+                          delay:0
+                        options:UIViewAnimationOptionAllowUserInteraction | UIViewAnimationOptionBeginFromCurrentState
+                     animations:^{
+                       self.scrollView.contentInset = contentInset;
+                     }
+                     completion:NULL];
+  } else {
+    self.scrollView.contentInset = contentInset;
+  }
 }
 
 - (void)setAutoLoadMore:(BOOL)autoLoadMore
