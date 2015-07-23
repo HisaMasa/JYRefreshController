@@ -23,6 +23,8 @@ typedef NS_ENUM(NSUInteger, JYLoadMoreState)
 
 @property (nonatomic, assign) BOOL enable;
 
+- (void)setEnable:(BOOL)enable withAnimation:(BOOL)animated;
+
 /**
  *  Set to NO, if need user dragging to trigger load more action. Default is YES.
  */
