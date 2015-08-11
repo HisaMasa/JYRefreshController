@@ -71,6 +71,12 @@
   if (_enable == enable) { // no change
     return;
   }
+
+  // stop refreshing if disabled.
+  if (!enable && _refreshState != JYRefreshStateStop) {
+    [self stopRefreshWithAnimated:NO completion:nil];
+  }
+
   _enable = enable;
   if ([self.refreshView respondsToSelector:@selector(pullToRefreshController:didSetEnable:)]) {
     [self.refreshView pullToRefreshController:self didSetEnable:enable];
