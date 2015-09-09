@@ -106,12 +106,12 @@
   }
   self.refreshState = JYRefreshStateLoading;
   NSTimeInterval duration = animated ? JYRefreshViewAnimationDuration : 0.0f;
+  self.scrollView.contentOffset = contentOffset;
   [UIView animateWithDuration:duration
                         delay:0
                       options:UIViewAnimationOptionAllowUserInteraction | UIViewAnimationOptionBeginFromCurrentState
                    animations:^{
                      self.scrollView.contentInset = contentInset;
-                     self.scrollView.contentOffset = contentOffset;
                    } completion:^(BOOL finished) {
                      if (self.pullToRefreshHandleAction) {
                        self.pullToRefreshHandleAction();
