@@ -57,6 +57,7 @@
   self.refreshController.pullToRefreshHandleAction = ^{
     [weakSelf insertRowAtTop];
   };
+  self.refreshController.showRefreshControllerAboveContent = YES;
 
   self.loadMoreController = [[JYPullToLoadMoreController alloc] initWithScrollView:self.tableView];
   self.loadMoreController.pullToLoadMoreHandleAction = ^{

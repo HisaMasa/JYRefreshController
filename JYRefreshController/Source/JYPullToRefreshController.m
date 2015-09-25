@@ -47,6 +47,11 @@
                      options:NSKeyValueObservingOptionNew
                      context:NULL];
 
+    [self.scrollView addObserver:self
+                      forKeyPath:@"contentInset"
+                         options:NSKeyValueObservingOptionNew
+                         context:NULL];
+
     [self setCustomView:[self defalutRefreshView]];
   }
   return self;
@@ -55,6 +60,7 @@
 - (void)dealloc
 {
   [self.scrollView removeObserver:self forKeyPath:@"contentOffset"];
+  [self.scrollView removeObserver:self forKeyPath:@"contentInset"];
 }
 
 #pragma mark- Property
@@ -124,7 +130,6 @@
   if (!self.enable || self.refreshState == JYRefreshStateStop) {
     return;
   }
-  self.refreshState = JYRefreshStateStop;
 
   UIEdgeInsets contentInset = self.scrollView.contentInset;
   contentInset.top -= self.refreshView.frame.size.height;
@@ -136,6 +141,7 @@
                    animations:^{
                        self.scrollView.contentInset = contentInset;
                    } completion:^(BOOL finished) {
+                     self.refreshState = JYRefreshStateStop;
                      if (finished) {
                        if (completion) {
                          completion();
@@ -162,6 +168,13 @@
 {
   if ([keyPath isEqualToString:@"contentOffset"]) {
     [self checkOffsetsWithChange:change];
+  }
+  else if ([keyPath isEqualToString:@"contentInset"]) {
+    UIEdgeInsets insets = [[change objectForKey:NSKeyValueChangeNewKey] UIEdgeInsetsValue];
+    if (_originalContentInsetTop != insets.top) {
+      _originalContentInsetTop = insets.top;
+    }
+    [self layoutRefreshView];
   }
 }
 
@@ -227,6 +240,10 @@
 
 - (void)layoutRefreshView
 {
+  if (self.refreshState != JYRefreshStateStop) {
+    return;
+  }
+
   if (self.enable) {
     [self.refreshView setHidden:NO];
     CGFloat originY = 0.0;
