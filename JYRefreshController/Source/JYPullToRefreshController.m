@@ -229,7 +229,12 @@
 {
   if (self.enable) {
     [self.refreshView setHidden:NO];
-    CGFloat originY = -CGRectGetHeight(self.refreshView.frame) - self.originalContentInsetTop;
+    CGFloat originY = 0.0;
+    if (self.showRefreshControllerAboveContent) {
+      originY = -CGRectGetHeight(self.refreshView.frame);
+    } else {
+      originY = -CGRectGetHeight(self.refreshView.frame) - self.originalContentInsetTop;
+    }
     CGRect frame = self.refreshView.frame;
     frame.origin.y = originY;
     self.refreshView.frame = frame;

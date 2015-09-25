@@ -27,6 +27,9 @@ typedef NS_ENUM(NSUInteger, JYRefreshState)
 
 @property (nonatomic, copy) void(^pullToRefreshHandleAction)();
 
+// 如果为 YES，则会紧贴 scrollView 正文的上部，否则会在 contentInsets 的上部显示
+@property (nonatomic, assign) BOOL showRefreshControllerAboveContent;
+
 - (instancetype)initWithScrollView:(UIScrollView *)scrollView;
 
 - (void)triggerRefreshWithAnimated:(BOOL)animated;
