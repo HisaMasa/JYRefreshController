@@ -47,6 +47,11 @@
                      options:NSKeyValueObservingOptionNew
                      context:NULL];
 
+    [self.scrollView addObserver:self
+                      forKeyPath:@"contentInset"
+                         options:NSKeyValueObservingOptionNew
+                         context:NULL];
+
     [self setCustomView:[self defalutRefreshView]];
   }
   return self;
@@ -55,6 +60,7 @@
 - (void)dealloc
 {
   [self.scrollView removeObserver:self forKeyPath:@"contentOffset"];
+  [self.scrollView removeObserver:self forKeyPath:@"contentInset"];
 }
 
 #pragma mark- Property
@@ -124,11 +130,12 @@
   if (!self.enable || self.refreshState == JYRefreshStateStop) {
     return;
   }
-  self.refreshState = JYRefreshStateStop;
 
   UIEdgeInsets contentInset = self.scrollView.contentInset;
   contentInset.top -= self.refreshView.frame.size.height;
 
+  self.refreshState = JYRefreshStateStop;
+  
   NSTimeInterval duration = animated ? JYRefreshViewAnimationDuration : 0.0f;
   [UIView animateWithDuration:duration
                         delay:0
@@ -162,6 +169,13 @@
 {
   if ([keyPath isEqualToString:@"contentOffset"]) {
     [self checkOffsetsWithChange:change];
+  }
+  else if ([keyPath isEqualToString:@"contentInset"]) {
+    UIEdgeInsets insets = [[change objectForKey:NSKeyValueChangeNewKey] UIEdgeInsetsValue];
+    if (_originalContentInsetTop != insets.top) {
+      _originalContentInsetTop = insets.top;
+    }
+    [self layoutRefreshView];
   }
 }
 
@@ -227,9 +241,18 @@
 
 - (void)layoutRefreshView
 {
+  if (self.refreshState != JYRefreshStateStop) {
+    return;
+  }
+
   if (self.enable) {
     [self.refreshView setHidden:NO];
-    CGFloat originY = -CGRectGetHeight(self.refreshView.frame) - self.originalContentInsetTop;
+    CGFloat originY = 0.0;
+    if (self.showRefreshControllerAboveContent) {
+      originY = -CGRectGetHeight(self.refreshView.frame);
+    } else {
+      originY = -CGRectGetHeight(self.refreshView.frame) - self.originalContentInsetTop;
+    }
     CGRect frame = self.refreshView.frame;
     frame.origin.y = originY;
     self.refreshView.frame = frame;
