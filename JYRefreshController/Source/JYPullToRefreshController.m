@@ -134,6 +134,8 @@
   UIEdgeInsets contentInset = self.scrollView.contentInset;
   contentInset.top -= self.refreshView.frame.size.height;
 
+  self.refreshState = JYRefreshStateStop;
+  
   NSTimeInterval duration = animated ? JYRefreshViewAnimationDuration : 0.0f;
   [UIView animateWithDuration:duration
                         delay:0
@@ -141,7 +143,6 @@
                    animations:^{
                        self.scrollView.contentInset = contentInset;
                    } completion:^(BOOL finished) {
-                     self.refreshState = JYRefreshStateStop;
                      if (finished) {
                        if (completion) {
                          completion();
