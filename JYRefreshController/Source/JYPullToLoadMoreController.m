@@ -287,7 +287,10 @@
 {
   if (self.enable) {
     [self.loadMoreView setHidden:NO];
-    CGFloat originY = self.scrollView.contentSize.height + self.originalContentInsetBottom;
+    CGFloat originY = self.scrollView.contentSize.height;
+    if (!self.showRefreshControllerBelowContent) {
+      originY += self.originalContentInsetBottom;
+    }
     CGRect frame = self.loadMoreView.frame;
     frame.origin.y = originY;
     self.loadMoreView.frame = frame;
