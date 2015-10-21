@@ -30,6 +30,12 @@ typedef NS_ENUM(NSUInteger, JYLoadMoreState)
  */
 @property (nonatomic, assign) BOOL autoLoadMore;
 
+/**
+ *  设置为 YES 表示把 `customView` 放在 `scrollView` 内容部分的下方；否则表示把
+ *  `customView` 放在 `scrollView.contentInset.bottom` 的下方。
+ */
+@property (nonatomic, assign) BOOL showRefreshControllerBelowContent;
+
 @property (nonatomic, readonly, assign) JYLoadMoreState loadMoreState;
 
 @property (nonatomic, copy) void(^pullToLoadMoreHandleAction)();
