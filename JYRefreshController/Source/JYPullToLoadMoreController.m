@@ -42,12 +42,16 @@
     _autoLoadMore = YES;
     _originalContentInsetBottom = scrollView.contentInset.bottom;
 
-    [self.scrollView addObserver:self
-                      forKeyPath:@"contentOffset"
-                         options:NSKeyValueObservingOptionNew
-                         context:NULL];
+    [_scrollView addObserver:self
+                  forKeyPath:@"contentOffset"
+                     options:NSKeyValueObservingOptionNew
+                     context:NULL];
     [_scrollView addObserver:self
                   forKeyPath:@"contentSize"
+                     options:NSKeyValueObservingOptionNew
+                     context:NULL];
+    [_scrollView addObserver:self
+                  forKeyPath:@"contentInset"
                      options:NSKeyValueObservingOptionNew
                      context:NULL];
 
@@ -61,6 +65,7 @@
 {
   [self.scrollView removeObserver:self forKeyPath:@"contentOffset"];
   [self.scrollView removeObserver:self forKeyPath:@"contentSize"];
+  [self.scrollView removeObserver:self forKeyPath:@"contentInset"];
 }
 
 #pragma mark- Property
@@ -210,8 +215,26 @@
 {
   if ([keyPath isEqualToString:@"contentOffset"]) {
     [self checkOffsetsWithChange:change];
-  } else if ([keyPath isEqualToString:@"contentSize"]) {
+  }
+  else if ([keyPath isEqualToString:@"contentSize"]) {
     [self layoutLoadMoreView];
+  }
+  else if ([keyPath isEqualToString:@"contentInset"]) { // self.scrollView 的 contentInset变化后，需要更新 self.originalContentInsetBottom
+    CGFloat scrollViewInsetBottom = self.scrollView.contentInset.bottom;
+    CGFloat loadMoreViewHeight = self.loadMoreView.bounds.size.height;
+
+    // self.scrollView.contentInset.bottom 只可能存在下面两种情况；
+    // 如果不满足，说明系统更新了scrollView.contentInset，这时候需要更新 self.originalContentInsetBottom
+    if (scrollViewInsetBottom != self.originalContentInsetBottom
+        && scrollViewInsetBottom != self.originalContentInsetBottom + loadMoreViewHeight) {
+
+      if (scrollViewInsetBottom > self.originalContentInsetBottom + loadMoreViewHeight) {
+        self.originalContentInsetBottom = scrollViewInsetBottom - self.originalContentInsetBottom -loadMoreViewHeight;
+      }
+      else if (scrollViewInsetBottom > self.originalContentInsetBottom) {
+        self.originalContentInsetBottom = scrollViewInsetBottom;
+      }
+    }
   }
 }
 
