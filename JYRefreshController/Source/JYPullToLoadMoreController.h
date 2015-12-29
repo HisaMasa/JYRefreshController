@@ -15,6 +15,12 @@ typedef NS_ENUM(NSUInteger, JYLoadMoreState)
   JYLoadMoreStateLoading = 2,
 };
 
+typedef NS_ENUM(NSUInteger, JYLoadMoreDirection)
+{
+    JYLoadMoreDirectionBottom = 0,
+    JYLoadMoreDirectionRight = 1,
+};
+
 @protocol JYRefreshView;
 
 @interface JYPullToLoadMoreController : NSObject
@@ -24,6 +30,8 @@ typedef NS_ENUM(NSUInteger, JYLoadMoreState)
 @property (nonatomic, assign) BOOL enable;
 
 - (void)setEnable:(BOOL)enable withAnimation:(BOOL)animated;
+
+@property (nonatomic, readonly, assign) JYLoadMoreDirection direction;
 
 /**
  *  Set to NO, if need user dragging to trigger load more action. Default is YES.
@@ -41,6 +49,11 @@ typedef NS_ENUM(NSUInteger, JYLoadMoreState)
 @property (nonatomic, copy) void(^pullToLoadMoreHandleAction)();
 
 - (instancetype)initWithScrollView:(UIScrollView *)scrollView;
+
+/**
+ *  Set dragging direction to trigger load more action. Default is JYLoadMoreDirectionBottom.
+ */
+- (instancetype)initWithScrollView:(UIScrollView *)scrollView direction:(JYLoadMoreDirection)direction;
 
 - (void)triggerLoadMoreWithAnimated:(BOOL)animated;
 
