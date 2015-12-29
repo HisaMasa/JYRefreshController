@@ -16,7 +16,7 @@
 
 @property (nonatomic, readwrite, strong) UIScrollView *scrollView;
 
-@property (nonatomic, readwrite, assign) CGFloat originalContentInsetBottom;
+@property (nonatomic, readwrite, assign) CGFloat originalContentInset;
 
 @property (nonatomic, readwrite, strong) UIView <JYRefreshView> *loadMoreView;
 
@@ -34,14 +34,22 @@
 @synthesize loadMoreView = _loadMoreView;
 
 #pragma mark - life cycle
-- (instancetype)initWithScrollView:(UIScrollView *)scrollView
+
+- (instancetype)initWithScrollView:(UIScrollView *)scrollView direction:(JYLoadMoreDirection)direction
 {
   self = [super init];
   if (self) {
     _scrollView = scrollView;
     _autoLoadMore = YES;
-    _originalContentInsetBottom = scrollView.contentInset.bottom;
-
+    _direction = direction;
+    CGFloat inset = 0;
+    if (direction == JYLoadMoreDirectionBottom) {
+      inset = scrollView.contentInset.bottom;
+    } else if (direction == JYLoadMoreDirectionRight) {
+      inset = scrollView.contentInset.right;
+    }
+    _originalContentInset = inset;
+    
     [self.scrollView addObserver:self
                       forKeyPath:@"contentOffset"
                          options:NSKeyValueObservingOptionNew
@@ -50,11 +58,16 @@
                   forKeyPath:@"contentSize"
                      options:NSKeyValueObservingOptionNew
                      context:NULL];
-
+    
     [self setCustomView:[self defalutRefreshView]];
     [self setEnable:YES withAnimation:NO];
   }
   return self;
+}
+
+- (instancetype)initWithScrollView:(UIScrollView *)scrollView
+{
+  return [self initWithScrollView:scrollView direction:JYLoadMoreDirectionBottom];
 }
 
 - (void)dealloc
@@ -88,12 +101,7 @@
   }
   [self layoutLoadMoreView];
 
-  UIEdgeInsets contentInset = self.scrollView.contentInset;
-  if (_enable && self.autoLoadMore) {
-    contentInset.bottom += self.loadMoreView.frame.size.height;
-  } else {
-    contentInset.bottom = self.originalContentInsetBottom;
-  }
+  UIEdgeInsets contentInset = [self initalContentInset];
 
   if (animated) {
     [UIView animateWithDuration:JYLoadMoreViewAnimationDuration
@@ -114,12 +122,7 @@
     return;
   }
   _autoLoadMore = autoLoadMore;
-  UIEdgeInsets contentInset = self.scrollView.contentInset;
-  if (_enable && _autoLoadMore) {
-    contentInset.bottom += self.loadMoreView.frame.size.height;
-  } else {
-    contentInset.bottom = self.originalContentInsetBottom;
-  }
+  UIEdgeInsets contentInset = [self initalContentInset];
   self.scrollView.contentInset = contentInset;
 }
 
@@ -129,17 +132,12 @@
   if (!self.enable || self.loadMoreState == JYLoadMoreStateLoading) {
     return;
   }
-  CGFloat refreshViewHeight = self.loadMoreView.frame.size.height;
-  CGPoint contentOffset = CGPointMake(0, self.scrollView.contentSize.height
-                                      - self.scrollView.bounds.size.height
-                                      + refreshViewHeight);
 
   if ([self.loadMoreView respondsToSelector:@selector(pullToLoadMoreController:didShowhLoadMoreViewPercentage:)]){
     [self.loadMoreView pullToLoadMoreController:self didShowhLoadMoreViewPercentage:1.0];
   }
   self.loadMoreState = JYLoadMoreStateLoading;
-  UIEdgeInsets contentInset = self.scrollView.contentInset;
-  contentInset.bottom += refreshViewHeight;
+  CGPoint contentOffset = [self triggeredContentOffset];
 
   NSTimeInterval duration = animated ? JYLoadMoreViewAnimationDuration : 0.0f;
   [UIView animateWithDuration:duration
@@ -148,6 +146,7 @@
                    animations:^{
                      self.scrollView.contentOffset = contentOffset;
                      if (!self.autoLoadMore) {
+                       UIEdgeInsets contentInset = [self adjustedContentInset];
                        self.scrollView.contentInset = contentInset;
                      }
                    } completion:^(BOOL finished) {
@@ -170,18 +169,12 @@
     }
   }
   else {
-    CGFloat refreshViewHeight = self.loadMoreView.frame.size.height;
-    UIEdgeInsets contentInset = self.scrollView.contentInset;
-    contentInset.bottom -= refreshViewHeight;
-    CGPoint contentOffset = CGPointMake(0, self.scrollView.contentSize.height
-                                        - self.scrollView.bounds.size.height
-                                        + refreshViewHeight);
+    UIEdgeInsets contentInset = [self adjustedContentInset];
     [UIView animateWithDuration:JYLoadMoreViewAnimationDuration
                           delay:0
                         options:UIViewAnimationOptionAllowUserInteraction | UIViewAnimationOptionBeginFromCurrentState
                      animations:^{
                        self.scrollView.contentInset = contentInset;
-                       self.scrollView.contentOffset = contentOffset;
                      } completion:^(BOOL finished) {
                        if (finished) {
                          if (completion) {
@@ -222,20 +215,33 @@
   }
   CGPoint contentOffset = [[change objectForKey:NSKeyValueChangeNewKey] CGPointValue];
   BOOL isTriggered = NO;
-  CGFloat refreshViewHeight = self.loadMoreView.frame.size.height;
-  CGFloat threshold = self.scrollView.contentSize.height
-  + self.scrollView.contentInset.bottom
-  - self.scrollView.bounds.size.height;
-  if (!self.autoLoadMore) {
-    threshold += refreshViewHeight;
+  CGFloat threshold = 0;
+  CGFloat checkOffset = 0;
+  CGFloat refreshViewOffset = 0;
+  if (_direction == JYLoadMoreDirectionBottom) {
+    refreshViewOffset = self.loadMoreView.frame.size.height;
+    threshold = self.scrollView.contentSize.height
+            + self.scrollView.contentInset.bottom
+            - self.scrollView.bounds.size.height;
+    checkOffset = contentOffset.y;
+    
+  } else if (_direction == JYLoadMoreDirectionRight) {
+    refreshViewOffset = self.loadMoreView.frame.size.width;
+    threshold = self.scrollView.contentSize.width
+            + self.scrollView.contentInset.right
+            - self.scrollView.bounds.size.width;
+    checkOffset = contentOffset.x;
   }
-
-  isTriggered = contentOffset.y >= threshold;
+  if (!self.autoLoadMore) {
+    threshold += refreshViewOffset;
+  }
+  
+  isTriggered = checkOffset >= threshold;
   if ([self.loadMoreView respondsToSelector:@selector(pullToLoadMoreController:didShowhLoadMoreViewPercentage:)]
       && self.loadMoreState == JYLoadMoreStateStop) {
 
-    CGFloat refreshViewVisibleHeight = contentOffset.y - threshold + refreshViewHeight;
-    CGFloat percentage = refreshViewVisibleHeight / refreshViewHeight;
+    CGFloat refreshViewVisibleOffset = checkOffset - threshold + refreshViewOffset;
+    CGFloat percentage = refreshViewVisibleOffset / refreshViewOffset;
     percentage = percentage <= 0 ? 0 : percentage;
     percentage = percentage >= 1 ? 1 : percentage;
     [self.loadMoreView pullToLoadMoreController:self didShowhLoadMoreViewPercentage:percentage];
@@ -258,8 +264,7 @@
         }
       }
       else {
-        UIEdgeInsets contentInset = self.scrollView.contentInset;
-        contentInset.bottom += refreshViewHeight;
+        UIEdgeInsets contentInset = [self adjustedContentInset];
         [UIView animateWithDuration:JYLoadMoreViewAnimationDuration
                               delay:0
                             options:UIViewAnimationOptionAllowUserInteraction | UIViewAnimationOptionBeginFromCurrentState
@@ -277,9 +282,14 @@
 
 - (UIView <JYRefreshView> *)defalutRefreshView
 {
-  CGRect frame = CGRectMake(0, 0, CGRectGetWidth(self.scrollView.bounds), JYLoadMoreViewDefaultHeight);
+  CGRect frame = CGRectZero;
+  if (_direction == JYLoadMoreDirectionBottom) {
+    frame = CGRectMake(0, 0, CGRectGetWidth(self.scrollView.bounds), JYLoadMoreViewDefaultHeight);
+  } else if (_direction == JYLoadMoreDirectionRight) {
+    frame = CGRectMake(0, 0, JYLoadMoreViewDefaultHeight, CGRectGetHeight(self.scrollView.bounds));
+  }
   JYRefreshView *refreshView = [[JYRefreshView alloc] initWithFrame:frame];
-  refreshView.autoresizingMask = UIViewAutoresizingFlexibleWidth;
+  refreshView.autoresizingMask = _direction == JYLoadMoreDirectionBottom ? UIViewAutoresizingFlexibleWidth : UIViewAutoresizingFlexibleHeight;
   return refreshView;
 }
 
@@ -287,16 +297,97 @@
 {
   if (self.enable) {
     [self.loadMoreView setHidden:NO];
-    CGFloat originY = self.scrollView.contentSize.height;
-    if (!self.showRefreshControllerBelowContent) {
-      originY += self.originalContentInsetBottom;
-    }
+    
     CGRect frame = self.loadMoreView.frame;
-    frame.origin.y = originY;
+    
+    CGFloat offset = 0;
+    if (_direction == JYLoadMoreDirectionBottom) {
+      offset = self.scrollView.contentSize.height;
+      if (!self.showRefreshControllerBelowContent) {
+        offset += self.originalContentInset;
+      }
+      frame.origin.y = offset;
+    } else if (_direction == JYLoadMoreDirectionRight) {
+      offset = self.scrollView.contentSize.width;
+      if (!self.showRefreshControllerBelowContent) {
+        offset += self.originalContentInset;
+      }
+      frame.origin.x = offset;
+    }
+
     self.loadMoreView.frame = frame;
   } else {
     [self.loadMoreView setHidden:YES];
   }
+}
+
+- (UIEdgeInsets)initalContentInset
+{
+  UIEdgeInsets contentInset = self.scrollView.contentInset;
+  if (_enable && _autoLoadMore) {
+    if (_direction == JYLoadMoreDirectionBottom) {
+      contentInset.bottom += self.loadMoreView.frame.size.height;
+    } else if (_direction == JYLoadMoreDirectionRight) {
+      contentInset.right += self.loadMoreView.frame.size.width;
+    }
+  } else {
+    if (_direction == JYLoadMoreDirectionBottom) {
+      contentInset.bottom = self.originalContentInset;
+    } else if (_direction == JYLoadMoreDirectionRight) {
+      contentInset.right = self.originalContentInset;
+    }
+  }
+  return contentInset;
+}
+
+- (UIEdgeInsets)adjustedContentInset
+{
+  UIEdgeInsets contentInset = self.scrollView.contentInset;
+  if (self.loadMoreState == JYLoadMoreStateStop) {
+    if (_direction == JYLoadMoreDirectionBottom) {
+      contentInset.bottom -= self.loadMoreView.frame.size.height;
+    } else if (_direction == JYLoadMoreDirectionRight) {
+      contentInset.right -= self.loadMoreView.frame.size.width;
+    }
+  } else {
+    if (_direction == JYLoadMoreDirectionBottom) {
+      contentInset.bottom += self.loadMoreView.frame.size.height;
+    } else if (_direction == JYLoadMoreDirectionRight) {
+      contentInset.right += self.loadMoreView.frame.size.width;
+    }
+  }
+  return contentInset;
+}
+
+- (CGFloat)refreshViewOffset
+{
+  CGFloat offset = 0;
+  if (_direction == JYLoadMoreDirectionBottom) {
+    offset = self.loadMoreView.frame.size.height;
+  } else if (_direction == JYLoadMoreDirectionRight) {
+    offset = self.loadMoreView.frame.size.width;
+  }
+  return offset;
+}
+
+- (CGPoint)triggeredContentOffset
+{
+  CGFloat offset = 0;
+  CGPoint contentOffset = CGPointZero;
+  if (_direction == JYLoadMoreDirectionBottom) {
+    offset = self.loadMoreView.frame.size.height;
+    offset = self.scrollView.contentSize.height
+          - self.scrollView.bounds.size.height
+          + offset;
+    contentOffset.y = offset;
+  } else if (_direction == JYLoadMoreDirectionRight) {
+    offset = self.loadMoreView.frame.size.width;
+    offset = self.scrollView.contentSize.width
+          - self.scrollView.bounds.size.width
+          + offset;
+    contentOffset.x = offset;
+  }
+  return contentOffset;
 }
 
 @end
