@@ -16,7 +16,7 @@
 
 @property (nonatomic, readwrite, strong) UIScrollView *scrollView;
 
-@property (nonatomic, readwrite, assign) CGFloat originalContentInsetTop;
+@property (nonatomic, readwrite, assign) CGFloat originalContentInset;
 
 @property (nonatomic, readwrite, strong) UIView <JYRefreshView> *refreshView;
 
@@ -34,27 +34,37 @@
 @synthesize refreshView = _refreshView;
 
 #pragma mark - life cycle
-- (instancetype)initWithScrollView:(UIScrollView *)scrollView
+- (instancetype)initWithScrollView:(UIScrollView *)scrollView direction:(JYRefreshDirection)direction
 {
   self = [super init];
   if (self) {
     _scrollView = scrollView;
-    _originalContentInsetTop = scrollView.contentInset.top;
     _enable = YES;
-
+    
+    if (direction == JYRefreshDirectionTop) {
+      _originalContentInset = scrollView.contentInset.top;
+    } else if (direction == JYRefreshDirectionLeft) {
+      _originalContentInset = scrollView.contentInset.left;
+    }
+    _direction = direction;
     [self.scrollView addObserver:self
-                  forKeyPath:@"contentOffset"
-                     options:NSKeyValueObservingOptionNew
-                     context:NULL];
-
+                      forKeyPath:@"contentOffset"
+                         options:NSKeyValueObservingOptionNew
+                         context:NULL];
+    
     [self.scrollView addObserver:self
                       forKeyPath:@"contentInset"
                          options:NSKeyValueObservingOptionNew
                          context:NULL];
-
+    
     [self setCustomView:[self defalutRefreshView]];
   }
   return self;
+}
+
+- (instancetype)initWithScrollView:(UIScrollView *)scrollView
+{
+  return [self initWithScrollView:scrollView direction:JYRefreshDirectionTop];
 }
 
 - (void)dealloc
@@ -96,21 +106,13 @@
   if (!self.enable || self.refreshState == JYRefreshStateLoading) {
     return;
   }
-  UIEdgeInsets contentInset = self.scrollView.contentInset;
-  CGPoint contentOffset = CGPointZero;
-
-  CGFloat refreshingInset = self.refreshView.frame.size.height;
-
-  contentInset = UIEdgeInsetsMake(refreshingInset + contentInset.top,
-                                  contentInset.left,
-                                  contentInset.bottom,
-                                  contentInset.right);
-
-  contentOffset = CGPointMake(0, -contentInset.top);
+  self.refreshState = JYRefreshStateLoading;
+  UIEdgeInsets contentInset = [self adjustedContentInset];
+  CGPoint contentOffset = [self triggeredContentOffset];
   if ([self.refreshView respondsToSelector:@selector(pullToRefreshController:didShowRefreshViewPercentage:)]) {
     [self.refreshView pullToRefreshController:self didShowRefreshViewPercentage:1.0];
   }
-  self.refreshState = JYRefreshStateLoading;
+
   NSTimeInterval duration = animated ? JYRefreshViewAnimationDuration : 0.0f;
   [UIView animateWithDuration:duration
                         delay:0
@@ -130,11 +132,8 @@
   if (!self.enable || self.refreshState == JYRefreshStateStop) {
     return;
   }
-
-  UIEdgeInsets contentInset = self.scrollView.contentInset;
-  contentInset.top -= self.refreshView.frame.size.height;
-
   self.refreshState = JYRefreshStateStop;
+  UIEdgeInsets contentInset = [self adjustedContentInset];
   
   NSTimeInterval duration = animated ? JYRefreshViewAnimationDuration : 0.0f;
   [UIView animateWithDuration:duration
@@ -172,8 +171,8 @@
   }
   else if ([keyPath isEqualToString:@"contentInset"]) {
     UIEdgeInsets insets = [[change objectForKey:NSKeyValueChangeNewKey] UIEdgeInsetsValue];
-    if (_originalContentInsetTop != insets.top) {
-      _originalContentInsetTop = insets.top;
+    if (_originalContentInset != insets.top) {
+      _originalContentInset = insets.top;
     }
     [self layoutRefreshView];
   }
@@ -187,15 +186,31 @@
   CGPoint contentOffset = [[change objectForKey:NSKeyValueChangeNewKey] CGPointValue];
   BOOL isTriggered = NO;
   UIEdgeInsets contentInset = self.scrollView.contentInset;
-  CGFloat refreshViewHeight = self.refreshView.frame.size.height;
-  CGFloat threshold = -contentInset.top - refreshViewHeight;
-
-  isTriggered = contentOffset.y <= threshold;
+  CGFloat refreshViewOffset = 0;
+  CGFloat threshold = 0;
+  CGFloat checkOffset = 0;
+  
+  if (_direction == JYRefreshDirectionTop) {
+    refreshViewOffset = self.refreshView.frame.size.height;
+    threshold = -contentInset.top - refreshViewOffset;
+    checkOffset = contentOffset.y;
+  } else if (_direction == JYRefreshDirectionLeft) {
+    refreshViewOffset = self.refreshView.frame.size.width;
+    threshold = -contentInset.left - refreshViewOffset;
+    checkOffset = contentOffset.x;
+  }
+  
+  isTriggered = checkOffset <= threshold;
   if ([self.refreshView respondsToSelector:@selector(pullToRefreshController:didShowRefreshViewPercentage:)]
       && self.refreshState == JYRefreshStateStop) {
 
-    CGFloat refreshViewVisibleHeight = -contentOffset.y - contentInset.top;
-    CGFloat percentage = refreshViewVisibleHeight / refreshViewHeight;
+    CGFloat refreshViewVisibleOffset = 0;
+    if (_direction == JYRefreshDirectionTop) {
+       refreshViewVisibleOffset = -checkOffset - contentInset.top;
+    } else if (_direction == JYRefreshDirectionLeft) {
+       refreshViewVisibleOffset = -checkOffset - contentInset.left;
+    }
+    CGFloat percentage = refreshViewVisibleOffset / refreshViewOffset;
     percentage = percentage <= 0 ? 0 : percentage;
     percentage = percentage >= 1 ? 1 : percentage;
     [self.refreshView pullToRefreshController:self didShowRefreshViewPercentage:percentage];
@@ -212,10 +227,7 @@
     if (self.refreshState == JYRefreshStateTrigger) {
       self.refreshState = JYRefreshStateLoading;
 
-      contentInset = UIEdgeInsetsMake(refreshViewHeight + contentInset.top,
-                                      contentInset.left,
-                                      contentInset.bottom,
-                                      contentInset.right);
+      contentInset = [self adjustedContentInset];
 
       [UIView animateWithDuration:JYRefreshViewAnimationDuration
                             delay:0
@@ -233,9 +245,15 @@
 
 - (UIView <JYRefreshView> *)defalutRefreshView
 {
-  CGRect frame = CGRectMake(0, 0, CGRectGetWidth(self.scrollView.bounds), JYRefreshViewDefaultHeight);
+  CGRect frame = CGRectZero;
+  if (_direction == JYRefreshDirectionTop) {
+    frame = CGRectMake(0, 0, CGRectGetWidth(self.scrollView.bounds), JYRefreshViewDefaultHeight);
+  } else if (_direction == JYRefreshDirectionLeft) {
+    frame = CGRectMake(0, 0, JYRefreshViewDefaultHeight, CGRectGetHeight(self.scrollView.bounds));
+  }
+  
   JYRefreshView *refreshView = [[JYRefreshView alloc] initWithFrame:frame];
-  refreshView.autoresizingMask = UIViewAutoresizingFlexibleWidth;
+  refreshView.autoresizingMask = _direction == JYRefreshDirectionTop ? UIViewAutoresizingFlexibleWidth : UIViewAutoresizingFlexibleHeight;
   return refreshView;
 }
 
@@ -247,18 +265,65 @@
 
   if (self.enable) {
     [self.refreshView setHidden:NO];
-    CGFloat originY = 0.0;
-    if (self.showRefreshControllerAboveContent) {
-      originY = -CGRectGetHeight(self.refreshView.frame);
-    } else {
-      originY = -CGRectGetHeight(self.refreshView.frame) - self.originalContentInsetTop;
-    }
+    CGFloat offset = 0.0;
     CGRect frame = self.refreshView.frame;
-    frame.origin.y = originY;
+
+    if (_direction == JYRefreshDirectionTop) {
+      if (self.showRefreshControllerAboveContent) {
+        offset = -CGRectGetHeight(self.refreshView.frame);
+      } else {
+        offset = -CGRectGetHeight(self.refreshView.frame) - self.originalContentInset;
+      }
+      frame.origin.y = offset;
+    } else if (_direction == JYRefreshDirectionLeft) {
+      if (self.showRefreshControllerAboveContent) {
+        offset = -CGRectGetWidth(self.refreshView.frame);
+      } else {
+        offset = -CGRectGetWidth(self.refreshView.frame) - self.originalContentInset;
+      }
+      frame.origin.x = offset;
+    }
     self.refreshView.frame = frame;
   } else {
     [self.refreshView setHidden:YES];
   }
+}
+
+- (UIEdgeInsets)adjustedContentInset
+{
+  UIEdgeInsets contentInset = self.scrollView.contentInset;
+  CGFloat refreshingOffset = 0;
+  
+  if (self.refreshState == JYRefreshStateStop) {
+    if (_direction == JYRefreshDirectionTop) {
+      refreshingOffset = self.refreshView.frame.size.height;
+      contentInset.top -= refreshingOffset;
+    } else if (_direction == JYRefreshDirectionLeft) {
+      refreshingOffset = self.refreshView.frame.size.width;
+      contentInset.left -= refreshingOffset;
+    }
+  } else {
+    if (_direction == JYRefreshDirectionTop) {
+      refreshingOffset = self.refreshView.frame.size.height;
+      contentInset.top += refreshingOffset;
+    } else if (_direction == JYRefreshDirectionLeft) {
+      refreshingOffset = self.refreshView.frame.size.width;
+      contentInset.left += refreshingOffset;
+    }
+  }
+  return contentInset;
+}
+
+- (CGPoint)triggeredContentOffset
+{
+  CGPoint contentOffset = CGPointZero;
+  UIEdgeInsets contentInset = [self adjustedContentInset];
+  if (_direction == JYRefreshDirectionTop) {
+    contentOffset = CGPointMake(0, -contentInset.top);
+  } else if (_direction == JYRefreshDirectionLeft) {
+    contentOffset = CGPointMake(-contentInset.left, 0);
+  }
+  return contentOffset;
 }
 
 @end
