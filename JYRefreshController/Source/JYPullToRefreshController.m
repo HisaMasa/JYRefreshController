@@ -26,7 +26,7 @@
 
 - (UIView <JYRefreshView> *)defalutRefreshView;
 
-- (void)checkOffsetsWithChange:(NSDictionary *)change;
+- (void)checkOffsetsWithChange:(CGPoint)change;
 
 @end
 
@@ -47,15 +47,18 @@
       _originalContentInset = scrollView.contentInset.left;
     }
     _direction = direction;
-    [self.scrollView addObserver:self
-                      forKeyPath:@"contentOffset"
-                         options:NSKeyValueObservingOptionNew
-                         context:NULL];
-    
-    [self.scrollView addObserver:self
-                      forKeyPath:@"contentInset"
-                         options:NSKeyValueObservingOptionNew
-                         context:NULL];
+    [_scrollView addObserver:self
+                  forKeyPath:@"contentOffset"
+                     options:NSKeyValueObservingOptionNew
+                     context:NULL];
+    [_scrollView addObserver:self
+                  forKeyPath:@"contentInset"
+                     options:NSKeyValueObservingOptionNew
+                     context:NULL];
+    [_scrollView.panGestureRecognizer addObserver:self
+                                       forKeyPath:@"state"
+                                          options:NSKeyValueObservingOptionNew
+                                          context:NULL];
     
     [self setCustomView:[self defalutRefreshView]];
   }
@@ -71,6 +74,7 @@
 {
   [self.scrollView removeObserver:self forKeyPath:@"contentOffset"];
   [self.scrollView removeObserver:self forKeyPath:@"contentInset"];
+  [self.scrollView.panGestureRecognizer removeObserver:self forKeyPath:@"state"];
 }
 
 #pragma mark- Property
@@ -87,12 +91,12 @@
   if (_enable == enable) { // no change
     return;
   }
-
+  
   // stop refreshing if disabled.
   if (!enable && _refreshState != JYRefreshStateStop) {
     [self stopRefreshWithAnimated:NO completion:nil];
   }
-
+  
   _enable = enable;
   if ([self.refreshView respondsToSelector:@selector(pullToRefreshController:didSetEnable:)]) {
     [self.refreshView pullToRefreshController:self didSetEnable:enable];
@@ -112,7 +116,7 @@
   if ([self.refreshView respondsToSelector:@selector(pullToRefreshController:didShowRefreshViewPercentage:)]) {
     [self.refreshView pullToRefreshController:self didShowRefreshViewPercentage:1.0];
   }
-
+  
   NSTimeInterval duration = animated ? JYRefreshViewAnimationDuration : 0.0f;
   [UIView animateWithDuration:duration
                         delay:0
@@ -120,6 +124,7 @@
                    animations:^{
                      self.scrollView.contentInset = contentInset;
                      self.scrollView.contentOffset = contentOffset;
+                     
                    } completion:^(BOOL finished) {
                      if (self.pullToRefreshHandleAction) {
                        self.pullToRefreshHandleAction();
@@ -140,7 +145,8 @@
                         delay:0
                       options:UIViewAnimationOptionAllowUserInteraction | UIViewAnimationOptionBeginFromCurrentState
                    animations:^{
-                       self.scrollView.contentInset = contentInset;
+                     self.scrollView.contentInset = contentInset;
+                     
                    } completion:^(BOOL finished) {
                      if (finished) {
                        if (completion) {
@@ -166,8 +172,12 @@
                         change:(NSDictionary *)change
                        context:(void *)context
 {
-  if ([keyPath isEqualToString:@"contentOffset"]) {
-    [self checkOffsetsWithChange:change];
+  if ([keyPath isEqualToString:@"contentOffset"] || [keyPath isEqualToString:@"state"]) {
+    CGPoint contentOffset = self.scrollView.contentOffset;
+    [self checkOffsetsWithChange:contentOffset];
+    if (self.attachedEdge) {
+      [self layoutRefreshView];
+    }
   }
   else if ([keyPath isEqualToString:@"contentInset"]) {
     UIEdgeInsets insets = [[change objectForKey:NSKeyValueChangeNewKey] UIEdgeInsetsValue];
@@ -179,11 +189,11 @@
 }
 
 #pragma mark - Private Methods
-- (void)checkOffsetsWithChange:(NSDictionary *)change {
+- (void)checkOffsetsWithChange:(CGPoint)change {
   if (!self.enable) {
     return;
   }
-  CGPoint contentOffset = [[change objectForKey:NSKeyValueChangeNewKey] CGPointValue];
+  CGPoint contentOffset = change;
   BOOL isTriggered = NO;
   UIEdgeInsets contentInset = self.scrollView.contentInset;
   CGFloat refreshViewOffset = 0;
@@ -203,39 +213,38 @@
   isTriggered = checkOffset <= threshold;
   if ([self.refreshView respondsToSelector:@selector(pullToRefreshController:didShowRefreshViewPercentage:)]
       && self.refreshState == JYRefreshStateStop) {
-
+    
     CGFloat refreshViewVisibleOffset = 0;
     if (_direction == JYRefreshDirectionTop) {
-       refreshViewVisibleOffset = -checkOffset - contentInset.top;
+      refreshViewVisibleOffset = -checkOffset - contentInset.top;
     } else if (_direction == JYRefreshDirectionLeft) {
-       refreshViewVisibleOffset = -checkOffset - contentInset.left;
+      refreshViewVisibleOffset = -checkOffset - contentInset.left;
     }
     CGFloat percentage = refreshViewVisibleOffset / refreshViewOffset;
     percentage = percentage <= 0 ? 0 : percentage;
     percentage = percentage >= 1 ? 1 : percentage;
     [self.refreshView pullToRefreshController:self didShowRefreshViewPercentage:percentage];
   }
-
-  if (self.scrollView.isDragging) {
+  
+  if (self.scrollView.panGestureRecognizer.state == UIGestureRecognizerStateBegan
+      || self.scrollView.panGestureRecognizer.state == UIGestureRecognizerStateChanged) {
     if (isTriggered && self.refreshState == JYRefreshStateStop) {
       self.refreshState = JYRefreshStateTrigger;
     } else if (!isTriggered && self.refreshState == JYRefreshStateTrigger) {
       self.refreshState = JYRefreshStateStop;
     }
   }
-  else {
+  else if (self.scrollView.panGestureRecognizer.state == UIGestureRecognizerStateEnded) {
     if (self.refreshState == JYRefreshStateTrigger) {
       self.refreshState = JYRefreshStateLoading;
-
-      contentInset = [self adjustedContentInset];
-
+      UIEdgeInsets contentInset = [self adjustedContentInset];
       [UIView animateWithDuration:JYRefreshViewAnimationDuration
                             delay:0
                           options:UIViewAnimationOptionAllowUserInteraction | UIViewAnimationOptionBeginFromCurrentState
                        animations:^{
                          self.scrollView.contentInset = contentInset;
                        } completion:^(BOOL finished) {
-                         if (self.pullToRefreshHandleAction) {
+                         if (self.pullToRefreshHandleAction && finished) {
                            self.pullToRefreshHandleAction();
                          }
                        }];
@@ -259,27 +268,32 @@
 
 - (void)layoutRefreshView
 {
-  if (self.refreshState != JYRefreshStateStop) {
-    return;
-  }
-
+  
   if (self.enable) {
     [self.refreshView setHidden:NO];
     CGFloat offset = 0.0;
     CGRect frame = self.refreshView.frame;
-
+    
     if (_direction == JYRefreshDirectionTop) {
       if (self.showRefreshControllerAboveContent) {
         offset = -CGRectGetHeight(self.refreshView.frame);
       } else {
         offset = -CGRectGetHeight(self.refreshView.frame) - self.originalContentInset;
       }
+      offset += self.scrollView.contentInset.top;
+      if (self.attachedEdge) {
+        offset += MIN(0, self.scrollView.contentOffset.y + frame.size.height);
+      }
+      
       frame.origin.y = offset;
     } else if (_direction == JYRefreshDirectionLeft) {
       if (self.showRefreshControllerAboveContent) {
         offset = -CGRectGetWidth(self.refreshView.frame);
       } else {
         offset = -CGRectGetWidth(self.refreshView.frame) - self.originalContentInset;
+      }
+      if (self.attachedEdge) {
+        offset += MIN(0, self.scrollView.contentOffset.y + frame.size.height);
       }
       frame.origin.x = offset;
     }
@@ -327,3 +341,4 @@
 }
 
 @end
+

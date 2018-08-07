@@ -22,11 +22,12 @@
 
 @property (nonatomic, readwrite, assign) JYLoadMoreState loadMoreState;
 
+
 - (void)layoutLoadMoreView;
 
 - (UIView <JYRefreshView> *)defalutRefreshView;
 
-- (void)checkOffsetsWithChange:(NSDictionary *)change;
+- (void)checkOffsetsWithChange:(CGPoint)change;
 
 @end
 
@@ -49,15 +50,18 @@
       inset = scrollView.contentInset.right;
     }
     _originalContentInset = inset;
-    
-    [self.scrollView addObserver:self
-                      forKeyPath:@"contentOffset"
-                         options:NSKeyValueObservingOptionNew
-                         context:NULL];
+    [_scrollView addObserver:self
+                  forKeyPath:@"contentOffset"
+                     options:NSKeyValueObservingOptionNew
+                     context:NULL];
     [_scrollView addObserver:self
                   forKeyPath:@"contentSize"
                      options:NSKeyValueObservingOptionNew
                      context:NULL];
+    [_scrollView.panGestureRecognizer addObserver:self
+                                       forKeyPath:@"state"
+                                          options:NSKeyValueObservingOptionNew
+                                          context:NULL];
     
     [self setCustomView:[self defalutRefreshView]];
     [self setEnable:YES withAnimation:NO];
@@ -74,6 +78,7 @@
 {
   [self.scrollView removeObserver:self forKeyPath:@"contentOffset"];
   [self.scrollView removeObserver:self forKeyPath:@"contentSize"];
+  [self.scrollView.panGestureRecognizer removeObserver:self forKeyPath:@"state"];
 }
 
 #pragma mark- Property
@@ -100,9 +105,9 @@
     [self.loadMoreView pullToLoadMoreController:self didSetEnable:enable];
   }
   [self layoutLoadMoreView];
-
+  
   UIEdgeInsets contentInset = [self initalContentInset];
-
+  
   if (animated) {
     [UIView animateWithDuration:JYLoadMoreViewAnimationDuration
                           delay:0
@@ -132,13 +137,13 @@
   if (!self.enable || self.loadMoreState == JYLoadMoreStateLoading) {
     return;
   }
-
+  
   if ([self.loadMoreView respondsToSelector:@selector(pullToLoadMoreController:didShowhLoadMoreViewPercentage:)]){
     [self.loadMoreView pullToLoadMoreController:self didShowhLoadMoreViewPercentage:1.0];
   }
   self.loadMoreState = JYLoadMoreStateLoading;
   CGPoint contentOffset = [self triggeredContentOffset];
-
+  
   NSTimeInterval duration = animated ? JYLoadMoreViewAnimationDuration : 0.0f;
   [UIView animateWithDuration:duration
                         delay:0
@@ -162,7 +167,7 @@
     return;
   }
   self.loadMoreState = JYLoadMoreStateStop;
-
+  
   if (self.autoLoadMore) {
     if (completion) {
       completion();
@@ -201,19 +206,23 @@
                         change:(NSDictionary *)change
                        context:(void *)context
 {
-  if ([keyPath isEqualToString:@"contentOffset"]) {
-    [self checkOffsetsWithChange:change];
+  if ([keyPath isEqualToString:@"contentOffset"] || [keyPath isEqualToString:@"state"]) {
+    CGPoint contentOffset = self.scrollView.contentOffset;
+    [self checkOffsetsWithChange:contentOffset];
+    if (self.attachedEdge) {
+      [self layoutLoadMoreView];
+    }
   } else if ([keyPath isEqualToString:@"contentSize"]) {
     [self layoutLoadMoreView];
   }
 }
 
 #pragma mark - Private Methods
-- (void)checkOffsetsWithChange:(NSDictionary *)change {
+- (void)checkOffsetsWithChange:(CGPoint)change {
   if (!self.enable) {
     return;
   }
-  CGPoint contentOffset = [[change objectForKey:NSKeyValueChangeNewKey] CGPointValue];
+  CGPoint contentOffset = change;
   BOOL isTriggered = NO;
   CGFloat threshold = 0;
   CGFloat checkOffset = 0;
@@ -239,31 +248,48 @@
   isTriggered = checkOffset >= threshold;
   if ([self.loadMoreView respondsToSelector:@selector(pullToLoadMoreController:didShowhLoadMoreViewPercentage:)]
       && self.loadMoreState == JYLoadMoreStateStop) {
-
+    
     CGFloat refreshViewVisibleOffset = checkOffset - threshold + refreshViewOffset;
     CGFloat percentage = refreshViewVisibleOffset / refreshViewOffset;
     percentage = percentage <= 0 ? 0 : percentage;
     percentage = percentage >= 1 ? 1 : percentage;
     [self.loadMoreView pullToLoadMoreController:self didShowhLoadMoreViewPercentage:percentage];
   }
-
-  if (self.scrollView.isDragging) {
+  
+  if (self.autoLoadMore) {
     if (isTriggered && self.loadMoreState == JYLoadMoreStateStop) {
       self.loadMoreState = JYLoadMoreStateTrigger;
     } else if (!isTriggered && self.loadMoreState == JYLoadMoreStateTrigger) {
       self.loadMoreState = JYLoadMoreStateStop;
     }
-  }
-  else {
-    if (self.loadMoreState == JYLoadMoreStateTrigger) {
-      self.loadMoreState = JYLoadMoreStateLoading;
-
-      if (self.autoLoadMore) {
-        if (self.pullToLoadMoreHandleAction) {
-          self.pullToLoadMoreHandleAction();
-        }
+    if (!self.scrollView.dragging && !self.scrollView.tracking) {
+      if (self.loadMoreState == JYLoadMoreStateTrigger) {
+        self.loadMoreState = JYLoadMoreStateLoading;
+        CGPoint contentOffset = [self triggeredContentOffset];
+        [UIView animateWithDuration:JYLoadMoreViewAnimationDuration
+                              delay:0
+                            options:UIViewAnimationOptionAllowUserInteraction | UIViewAnimationOptionBeginFromCurrentState
+                         animations:^{
+                           self.scrollView.contentOffset = contentOffset;
+                         } completion:^(BOOL finished) {
+                           if (self.pullToLoadMoreHandleAction) {
+                             self.pullToLoadMoreHandleAction();
+                           }
+                         }];
       }
-      else {
+    }
+  } else {
+    if (self.scrollView.panGestureRecognizer.state == UIGestureRecognizerStateBegan
+        || self.scrollView.panGestureRecognizer.state == UIGestureRecognizerStateChanged) {
+      if (isTriggered && self.loadMoreState == JYLoadMoreStateStop) {
+        self.loadMoreState = JYLoadMoreStateTrigger;
+      } else if (!isTriggered && self.loadMoreState == JYLoadMoreStateTrigger) {
+        self.loadMoreState = JYLoadMoreStateStop;
+      }
+    }
+    else {
+      if (self.loadMoreState == JYLoadMoreStateTrigger) {
+        self.loadMoreState = JYLoadMoreStateLoading;
         UIEdgeInsets contentInset = [self adjustedContentInset];
         [UIView animateWithDuration:JYLoadMoreViewAnimationDuration
                               delay:0
@@ -303,18 +329,26 @@
     CGFloat offset = 0;
     if (_direction == JYLoadMoreDirectionBottom) {
       offset = self.scrollView.contentSize.height;
+      if (self.attachedEdge) {
+        offset += MAX(0, self.scrollView.contentOffset.y + self.scrollView.frame.size.height - self.scrollView.contentSize.height);
+        offset -= self.loadMoreView.frame.size.height;
+      }
       if (!self.showRefreshControllerBelowContent) {
         offset += self.originalContentInset;
       }
       frame.origin.y = offset;
     } else if (_direction == JYLoadMoreDirectionRight) {
       offset = self.scrollView.contentSize.width;
+      if (self.attachedEdge) {
+        offset += MAX(0, self.scrollView.contentOffset.x + self.scrollView.frame.size.width - self.scrollView.contentSize.width);
+        offset -= self.loadMoreView.frame.size.width;
+      }
       if (!self.showRefreshControllerBelowContent) {
         offset += self.originalContentInset;
       }
       frame.origin.x = offset;
     }
-
+    
     self.loadMoreView.frame = frame;
   } else {
     [self.loadMoreView setHidden:YES];
@@ -391,3 +425,4 @@
 }
 
 @end
+

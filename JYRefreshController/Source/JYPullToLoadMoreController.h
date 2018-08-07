@@ -17,8 +17,8 @@ typedef NS_ENUM(NSUInteger, JYLoadMoreState)
 
 typedef NS_ENUM(NSUInteger, JYLoadMoreDirection)
 {
-    JYLoadMoreDirectionBottom = 0,
-    JYLoadMoreDirectionRight = 1,
+  JYLoadMoreDirectionBottom = 0,
+  JYLoadMoreDirectionRight = 1,
 };
 
 @protocol JYRefreshView;
@@ -44,6 +44,11 @@ typedef NS_ENUM(NSUInteger, JYLoadMoreDirection)
  */
 @property (nonatomic, assign) BOOL showRefreshControllerBelowContent;
 
+/**
+ *  Set YES to make refresh view attach to the scrollView edge, default is NO
+ */
+@property (nonatomic, assign) BOOL attachedEdge;
+
 @property (nonatomic, readonly, assign) JYLoadMoreState loadMoreState;
 
 @property (nonatomic, copy) void(^pullToLoadMoreHandleAction)();
@@ -62,3 +67,4 @@ typedef NS_ENUM(NSUInteger, JYLoadMoreDirection)
 - (void)setCustomView:(UIView <JYRefreshView> *)customView;
 
 @end
+

@@ -38,6 +38,11 @@ typedef NS_ENUM(NSUInteger, JYRefreshDirection)
 // 如果为 YES，则会紧贴 scrollView 正文的上部，否则会在 contentInsets 的上部显示
 @property (nonatomic, assign) BOOL showRefreshControllerAboveContent;
 
+/**
+ *  Set YES to make refresh view attach to the scrollView edge, default is NO
+ */
+@property (nonatomic, assign) BOOL attachedEdge;
+
 - (instancetype)initWithScrollView:(UIScrollView *)scrollView;
 
 /**
@@ -52,3 +57,4 @@ typedef NS_ENUM(NSUInteger, JYRefreshDirection)
 - (void)setCustomView:(UIView <JYRefreshView> *)customView;
 
 @end
+
