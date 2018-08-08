@@ -10,14 +10,17 @@ An easy way to add pull-to-refresh or pull-to-loadMore to any kind of UIScrollVi
 ## Podfile
 
 ```ruby
-platform :ios, '6.0'
-pod "JYRefreshController"
+pod "JYRefreshController", `~> 0.5.0`
 ```
 ## License
 
 JYRefreshController is available under the MIT license. See the LICENSE file for more info.
 
 ## ChangeLog
+
+0.5.0
+
+- Add attachedEdge property to make refresh view attach to the scrollView edge
 
 0.4.0
 
