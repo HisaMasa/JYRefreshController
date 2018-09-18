@@ -161,7 +161,7 @@
                    }];
 }
 
-- (void)stopLoadMoreCompletion:(void(^)())completion
+- (void)stopLoadMoreCompletion:(void(^)(void))completion
 {
   if (!self.enable || self.loadMoreState == JYLoadMoreStateStop) {
     return;

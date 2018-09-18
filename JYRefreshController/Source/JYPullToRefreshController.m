@@ -132,7 +132,7 @@
                    }];
 }
 
-- (void)stopRefreshWithAnimated:(BOOL)animated completion:(void(^)())completion
+- (void)stopRefreshWithAnimated:(BOOL)animated completion:(void(^)(void))completion
 {
   if (!self.enable || self.refreshState == JYRefreshStateStop) {
     return;
