@@ -33,7 +33,7 @@ typedef NS_ENUM(NSUInteger, JYRefreshDirection)
 
 @property (nonatomic, readonly, assign) JYRefreshDirection direction;
 
-@property (nonatomic, copy) void(^pullToRefreshHandleAction)();
+@property (nonatomic, copy) void(^pullToRefreshHandleAction)(void);
 
 // 如果为 YES，则会紧贴 scrollView 正文的上部，否则会在 contentInsets 的上部显示
 @property (nonatomic, assign) BOOL showRefreshControllerAboveContent;
@@ -52,7 +52,7 @@ typedef NS_ENUM(NSUInteger, JYRefreshDirection)
 
 - (void)triggerRefreshWithAnimated:(BOOL)animated;
 
-- (void)stopRefreshWithAnimated:(BOOL)animated completion:(void(^)())completion;
+- (void)stopRefreshWithAnimated:(BOOL)animated completion:(void(^)(void))completion;
 
 - (void)setCustomView:(UIView <JYRefreshView> *)customView;
 
