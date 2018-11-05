@@ -211,19 +211,24 @@
   }
   
   isTriggered = checkOffset <= threshold;
+
+  CGFloat refreshViewVisibleOffset = 0;
+  if (_direction == JYRefreshDirectionTop) {
+    refreshViewVisibleOffset = -checkOffset - contentInset.top;
+  } else if (_direction == JYRefreshDirectionLeft) {
+    refreshViewVisibleOffset = -checkOffset - contentInset.left;
+  }
   if ([self.refreshView respondsToSelector:@selector(pullToRefreshController:didShowRefreshViewPercentage:)]
       && self.refreshState == JYRefreshStateStop) {
-    
-    CGFloat refreshViewVisibleOffset = 0;
-    if (_direction == JYRefreshDirectionTop) {
-      refreshViewVisibleOffset = -checkOffset - contentInset.top;
-    } else if (_direction == JYRefreshDirectionLeft) {
-      refreshViewVisibleOffset = -checkOffset - contentInset.left;
-    }
     CGFloat percentage = refreshViewVisibleOffset / refreshViewOffset;
     percentage = percentage <= 0 ? 0 : percentage;
     percentage = percentage >= 1 ? 1 : percentage;
     [self.refreshView pullToRefreshController:self didShowRefreshViewPercentage:percentage];
+  }
+
+  if ([self.refreshView respondsToSelector:@selector(pullToRefreshController:didScrolllVisableOffset:)]
+      ) {
+    [self.refreshView pullToRefreshController:self didScrolllVisableOffset:refreshViewVisibleOffset];
   }
   
   if (self.scrollView.panGestureRecognizer.state == UIGestureRecognizerStateBegan
