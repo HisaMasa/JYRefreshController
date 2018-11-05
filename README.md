@@ -18,6 +18,10 @@ JYRefreshController is available under the MIT license. See the LICENSE file for
 
 ## ChangeLog
 
+0.5.2
+
+- add protocal method  pullToRefreshController:didScrolllVisableOffset: pullToLoadMoreController:didScrolllVisableOffset:
+
 0.5.0
 
 - Add attachedEdge property to make refresh view attach to the scrollView edge
