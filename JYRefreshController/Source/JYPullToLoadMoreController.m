@@ -246,14 +246,19 @@
   }
   
   isTriggered = checkOffset >= threshold;
+  CGFloat refreshViewVisibleOffset = checkOffset - threshold + refreshViewOffset;
+
   if ([self.loadMoreView respondsToSelector:@selector(pullToLoadMoreController:didShowhLoadMoreViewPercentage:)]
       && self.loadMoreState == JYLoadMoreStateStop) {
-    
-    CGFloat refreshViewVisibleOffset = checkOffset - threshold + refreshViewOffset;
     CGFloat percentage = refreshViewVisibleOffset / refreshViewOffset;
     percentage = percentage <= 0 ? 0 : percentage;
     percentage = percentage >= 1 ? 1 : percentage;
     [self.loadMoreView pullToLoadMoreController:self didShowhLoadMoreViewPercentage:percentage];
+  }
+
+  if ([self.loadMoreView respondsToSelector:@selector(pullToLoadMoreController:didScrolllVisableOffset:)]
+      ) {
+    [self.loadMoreView pullToLoadMoreController:self didScrolllVisableOffset:refreshViewVisibleOffset];
   }
   
   if (self.autoLoadMore) {

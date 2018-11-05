@@ -21,6 +21,9 @@
    didShowRefreshViewPercentage:(CGFloat)percentage;
 
 - (void)pullToRefreshController:(JYPullToRefreshController *)refreshController
+     didScrolllVisableOffset:(CGFloat)visableOffset;
+
+- (void)pullToRefreshController:(JYPullToRefreshController *)refreshController
                    didSetEnable:(BOOL)enable;
 
 - (void)pullToLoadMoreController:(JYPullToLoadMoreController *)loadMoreController
@@ -28,6 +31,9 @@
 
 - (void)pullToLoadMoreController:(JYPullToLoadMoreController *)loadMoreController
   didShowhLoadMoreViewPercentage:(CGFloat)percentage;
+
+- (void)pullToLoadMoreController:(JYPullToLoadMoreController *)loadMoreController
+     didScrolllVisableOffset:(CGFloat)visableOffset;
 
 - (void)pullToLoadMoreController:(JYPullToLoadMoreController *)loadMoreController
                     didSetEnable:(BOOL)enable;
