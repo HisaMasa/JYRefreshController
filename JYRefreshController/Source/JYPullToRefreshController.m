@@ -132,7 +132,7 @@
                    }];
 }
 
-- (void)stopRefreshWithAnimated:(BOOL)animated completion:(void(^)(void))completion
+- (void)stopRefreshWithAnimated:(BOOL)animated completion:(void(^)(BOOL finished))completion
 {
   if (!self.enable || self.refreshState == JYRefreshStateStop) {
     return;
@@ -148,11 +148,9 @@
                      self.scrollView.contentInset = contentInset;
                      
                    } completion:^(BOOL finished) {
-                     if (finished) {
                        if (completion) {
-                         completion();
+                         completion(finished);
                        }
-                     }
                    }];
 }
 

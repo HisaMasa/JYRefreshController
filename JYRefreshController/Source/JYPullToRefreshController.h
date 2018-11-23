@@ -52,7 +52,7 @@ typedef NS_ENUM(NSUInteger, JYRefreshDirection)
 
 - (void)triggerRefreshWithAnimated:(BOOL)animated;
 
-- (void)stopRefreshWithAnimated:(BOOL)animated completion:(void(^)(void))completion;
+- (void)stopRefreshWithAnimated:(BOOL)animated completion:(void(^)(BOOL finished))completion;
 
 - (void)setCustomView:(UIView <JYRefreshView> *)customView;
 
