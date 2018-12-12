@@ -18,6 +18,10 @@ JYRefreshController is available under the MIT license. See the LICENSE file for
 
 ## ChangeLog
 
+0.7.0
+
+- add panGesture 
+
 0.5.2
 
 - add protocal method  pullToRefreshController:didScrolllVisableOffset: pullToLoadMoreController:didScrolllVisableOffset:
