@@ -54,7 +54,7 @@ typedef NS_ENUM(NSUInteger, JYLoadMoreDirection)
 
 @property (nonatomic, readonly, assign) JYLoadMoreState loadMoreState;
 
-@property (nonatomic, copy) void(^pullToLoadMoreHandleAction)();
+@property (nonatomic, copy) void(^pullToLoadMoreHandleAction)(void);
 
 - (instancetype)initWithScrollView:(UIScrollView *)scrollView;
 

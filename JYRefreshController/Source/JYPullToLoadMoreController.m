@@ -437,6 +437,7 @@
     }
     return self.scrollView.panGestureRecognizer;
 }
+
 - (void)setPanGesture:(UIPanGestureRecognizer *)panGesture
 {
     if (panGesture) {
