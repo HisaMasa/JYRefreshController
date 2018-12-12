@@ -32,6 +32,7 @@
 @end
 
 @implementation JYPullToLoadMoreController
+@synthesize panGesture = _panGesture;
 @synthesize loadMoreView = _loadMoreView;
 
 #pragma mark - life cycle
@@ -58,10 +59,10 @@
                   forKeyPath:@"contentSize"
                      options:NSKeyValueObservingOptionNew
                      context:NULL];
-    [_scrollView.panGestureRecognizer addObserver:self
-                                       forKeyPath:@"state"
-                                          options:NSKeyValueObservingOptionNew
-                                          context:NULL];
+    [self.panGesture addObserver:self
+                      forKeyPath:@"state"
+                         options:NSKeyValueObservingOptionNew
+                         context:NULL];
     
     [self setCustomView:[self defalutRefreshView]];
     [self setEnable:YES withAnimation:NO];
@@ -78,7 +79,7 @@
 {
   [self.scrollView removeObserver:self forKeyPath:@"contentOffset"];
   [self.scrollView removeObserver:self forKeyPath:@"contentSize"];
-  [self.scrollView.panGestureRecognizer removeObserver:self forKeyPath:@"state"];
+  [self.panGesture removeObserver:self forKeyPath:@"state"];
 }
 
 #pragma mark- Property
@@ -284,8 +285,8 @@
       }
     }
   } else {
-    if (self.scrollView.panGestureRecognizer.state == UIGestureRecognizerStateBegan
-        || self.scrollView.panGestureRecognizer.state == UIGestureRecognizerStateChanged) {
+    if (self.panGesture.state == UIGestureRecognizerStateBegan
+        || self.panGesture.state == UIGestureRecognizerStateChanged) {
       if (isTriggered && self.loadMoreState == JYLoadMoreStateStop) {
         self.loadMoreState = JYLoadMoreStateTrigger;
       } else if (!isTriggered && self.loadMoreState == JYLoadMoreStateTrigger) {
@@ -427,6 +428,25 @@
     contentOffset.x = offset;
   }
   return contentOffset;
+}
+
+- (UIPanGestureRecognizer *)panGesture
+{
+    if (_panGesture) {
+        return _panGesture;
+    }
+    return self.scrollView.panGestureRecognizer;
+}
+- (void)setPanGesture:(UIPanGestureRecognizer *)panGesture
+{
+    if (panGesture) {
+        [self.panGesture removeObserver:self forKeyPath:@"state"];
+    }
+    _panGesture = panGesture;
+    [self.panGesture addObserver:self
+                      forKeyPath:@"state"
+                         options:NSKeyValueObservingOptionNew
+                         context:NULL];
 }
 
 @end

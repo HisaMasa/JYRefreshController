@@ -27,6 +27,9 @@ typedef NS_ENUM(NSUInteger, JYLoadMoreDirection)
 
 @property (nonatomic, readonly, strong) UIScrollView *scrollView;
 
+//自定义手势操作刷新动画
+@property (nonatomic, strong) UIPanGestureRecognizer *panGesture;
+
 @property (nonatomic, assign) BOOL enable;
 
 - (void)setEnable:(BOOL)enable withAnimation:(BOOL)animated;

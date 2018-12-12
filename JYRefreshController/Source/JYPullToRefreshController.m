@@ -32,6 +32,7 @@
 
 @implementation JYPullToRefreshController
 @synthesize refreshView = _refreshView;
+@synthesize panGesture = _panGesture;
 
 #pragma mark - life cycle
 - (instancetype)initWithScrollView:(UIScrollView *)scrollView direction:(JYRefreshDirection)direction
@@ -55,10 +56,10 @@
                   forKeyPath:@"contentInset"
                      options:NSKeyValueObservingOptionNew
                      context:NULL];
-    [_scrollView.panGestureRecognizer addObserver:self
-                                       forKeyPath:@"state"
-                                          options:NSKeyValueObservingOptionNew
-                                          context:NULL];
+    [self.panGesture addObserver:self
+                      forKeyPath:@"state"
+                         options:NSKeyValueObservingOptionNew
+                         context:NULL];
     
     [self setCustomView:[self defalutRefreshView]];
   }
@@ -74,7 +75,7 @@
 {
   [self.scrollView removeObserver:self forKeyPath:@"contentOffset"];
   [self.scrollView removeObserver:self forKeyPath:@"contentInset"];
-  [self.scrollView.panGestureRecognizer removeObserver:self forKeyPath:@"state"];
+  [self.panGesture removeObserver:self forKeyPath:@"state"];
 }
 
 #pragma mark- Property
@@ -229,15 +230,15 @@
     [self.refreshView pullToRefreshController:self didScrolllVisableOffset:refreshViewVisibleOffset];
   }
   
-  if (self.scrollView.panGestureRecognizer.state == UIGestureRecognizerStateBegan
-      || self.scrollView.panGestureRecognizer.state == UIGestureRecognizerStateChanged) {
+  if (self.panGesture.state == UIGestureRecognizerStateBegan
+      || self.panGesture.state == UIGestureRecognizerStateChanged) {
     if (isTriggered && self.refreshState == JYRefreshStateStop) {
       self.refreshState = JYRefreshStateTrigger;
     } else if (!isTriggered && self.refreshState == JYRefreshStateTrigger) {
       self.refreshState = JYRefreshStateStop;
     }
   }
-  else if (self.scrollView.panGestureRecognizer.state == UIGestureRecognizerStateEnded) {
+  else if (self.panGesture.state == UIGestureRecognizerStateEnded) {
     if (self.refreshState == JYRefreshStateTrigger) {
       self.refreshState = JYRefreshStateLoading;
       UIEdgeInsets contentInset = [self adjustedContentInset];
@@ -341,6 +342,25 @@
     contentOffset = CGPointMake(-contentInset.left, 0);
   }
   return contentOffset;
+}
+
+- (UIPanGestureRecognizer *)panGesture
+{
+    if (_panGesture) {
+        return _panGesture;
+    }
+    return self.scrollView.panGestureRecognizer;
+}
+- (void)setPanGesture:(UIPanGestureRecognizer *)panGesture
+{
+    if (panGesture) {
+        [self.panGesture removeObserver:self forKeyPath:@"state"];
+    }
+    _panGesture = panGesture;
+    [self.panGesture addObserver:self
+                      forKeyPath:@"state"
+                         options:NSKeyValueObservingOptionNew
+                         context:NULL];
 }
 
 @end
