@@ -26,6 +26,8 @@ typedef NS_ENUM(NSUInteger, JYRefreshDirection)
 @interface JYPullToRefreshController : NSObject
 
 @property (nonatomic, readonly, strong) UIScrollView *scrollView;
+//自定义手势操作刷新动画
+@property (nonatomic, strong) UIPanGestureRecognizer *panGesture;
 
 @property (nonatomic, assign) BOOL enable;
 
