@@ -57,9 +57,9 @@
                      options:NSKeyValueObservingOptionNew
                      context:NULL];
     [self.panGesture addObserver:self
-                      forKeyPath:@"state"
-                         options:NSKeyValueObservingOptionNew
-                         context:NULL];
+                                       forKeyPath:@"state"
+                                          options:NSKeyValueObservingOptionNew
+                                          context:NULL];
     
     [self setCustomView:[self defalutRefreshView]];
   }
@@ -346,14 +346,15 @@
 
 - (UIPanGestureRecognizer *)panGesture
 {
-    if (_panGesture) {
-        return _panGesture;
+    if (!_panGesture) {
+        _panGesture = self.scrollView.panGestureRecognizer;
     }
-    return self.scrollView.panGestureRecognizer;
+    return _panGesture;
 }
+
 - (void)setPanGesture:(UIPanGestureRecognizer *)panGesture
 {
-    if (panGesture) {
+    if (self.panGesture) {
         [self.panGesture removeObserver:self forKeyPath:@"state"];
     }
     _panGesture = panGesture;
